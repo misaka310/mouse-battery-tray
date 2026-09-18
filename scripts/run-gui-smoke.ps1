@@ -37,7 +37,7 @@ Push-Location $root
 try {
     & (Join-Path $root 'scripts\build.ps1')
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path $exe)) {
-        throw 'The packaged SPRIME-PM1-Battery-Tray.exe was not built.'
+        throw 'The packaged Mouse-Battery-Tray.exe was not built.'
     }
 
     $env:GUI_SMOKE_EXE = $exe

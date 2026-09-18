@@ -5,15 +5,15 @@ param(
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
-$SourceDir = Join-Path $RepoRoot "dist\SPRIME-PM1-Battery-Tray"
-$SourceExe = Join-Path $SourceDir "SPRIME-PM1-Battery-Tray.exe"
+$SourceDir = Join-Path $RepoRoot "dist\Mouse-Battery-Tray"
+$SourceExe = Join-Path $SourceDir "Mouse-Battery-Tray.exe"
 
 if (-not (Test-Path -LiteralPath $SourceExe)) {
     throw "Built application not found: $SourceExe. Run scripts/build.ps1 first."
 }
 
-$AppName = "SPRIME-PM1-Battery-Tray"
-$InstallDir = Join-Path $env:LOCALAPPDATA "Programs\SPRIME PM1 Battery Tray"
+$AppName = "Mouse-Battery-Tray"
+$InstallDir = Join-Path $env:LOCALAPPDATA "Programs\Mouse Battery Tray"
 $InstallExe = Join-Path $InstallDir "$AppName.exe"
 
 $Running = Get-Process -Name $AppName -ErrorAction SilentlyContinue
@@ -29,31 +29,28 @@ New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 Copy-Item -Path (Join-Path $SourceDir "*") -Destination $InstallDir -Recurse -Force
 
 $ProgramsDir = Join-Path $env:APPDATA "Microsoft\Windows\Start Menu\Programs"
-$StartupDir = Join-Path $ProgramsDir "Startup"
-$StartMenuShortcut = Join-Path $ProgramsDir "SPRIME PM1 Battery Tray.lnk"
-$StartupShortcut = Join-Path $StartupDir "SPRIME PM1 Battery Tray.lnk"
+$StartMenuShortcut = Join-Path $ProgramsDir "Mouse Battery Tray.lnk"
 
 New-Item -ItemType Directory -Path $ProgramsDir -Force | Out-Null
-New-Item -ItemType Directory -Path $StartupDir -Force | Out-Null
 
-function Set-AppShortcut {
-    param([Parameter(Mandatory = $true)][string]$ShortcutPath)
+$Shell = New-Object -ComObject WScript.Shell
+$Shortcut = $Shell.CreateShortcut($StartMenuShortcut)
+$Shortcut.TargetPath = $InstallExe
+$Shortcut.WorkingDirectory = $InstallDir
+$Shortcut.IconLocation = "$InstallExe,0"
+$Shortcut.Description = "Mouse battery monitor"
+$Shortcut.Save()
 
-    $Shell = New-Object -ComObject WScript.Shell
-    $Shortcut = $Shell.CreateShortcut($ShortcutPath)
-    $Shortcut.TargetPath = $InstallExe
-    $Shortcut.WorkingDirectory = $InstallDir
-    $Shortcut.IconLocation = "$InstallExe,0"
-    $Shortcut.Description = "SPRIME PM1 battery monitor"
-    $Shortcut.Save()
-}
-
-Set-AppShortcut -ShortcutPath $StartMenuShortcut
-
-$ConfigDir = Join-Path $env:APPDATA "SprimePM1BatteryTray"
+$ConfigDir = Join-Path $env:APPDATA "MouseBatteryTray"
 $ConfigPath = Join-Path $ConfigDir "config.json"
+$LegacyConfigPath = Join-Path $env:APPDATA "SprimePM1BatteryTray\config.json"
 $StartOnBoot = $false
 $Config = $null
+
+if (-not (Test-Path -LiteralPath $ConfigPath) -and (Test-Path -LiteralPath $LegacyConfigPath)) {
+    New-Item -ItemType Directory -Path $ConfigDir -Force | Out-Null
+    Copy-Item -LiteralPath $LegacyConfigPath -Destination $ConfigPath
+}
 
 if (Test-Path -LiteralPath $ConfigPath) {
     try {
@@ -84,19 +81,21 @@ if ($EnableStartup) {
     [System.IO.File]::WriteAllText($ConfigPath, $ConfigJson, $Utf8NoBom)
 }
 
+$RunKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+if (-not (Test-Path $RunKey)) {
+    New-Item -Path $RunKey -Force | Out-Null
+}
 if ($StartOnBoot) {
-    Set-AppShortcut -ShortcutPath $StartupShortcut
+    Set-ItemProperty -Path $RunKey -Name "MouseBatteryTray" -Value ('"' + $InstallExe + '"')
 }
 else {
-    Remove-Item -LiteralPath $StartupShortcut -Force -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path $RunKey -Name "MouseBatteryTray" -ErrorAction SilentlyContinue
 }
-
-$RunKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
 Remove-ItemProperty -Path $RunKey -Name "SPRIME PM1 Battery Tray" -ErrorAction SilentlyContinue
+
+$LegacyStartup = Join-Path $ProgramsDir "Startup\SPRIME PM1 Battery Tray.lnk"
+Remove-Item -LiteralPath $LegacyStartup -Force -ErrorAction SilentlyContinue
 
 Write-Output "INSTALL_EXE=$InstallExe"
 Write-Output "START_MENU_SHORTCUT=$StartMenuShortcut"
 Write-Output "STARTUP_ENABLED=$StartOnBoot"
-if ($StartOnBoot) {
-    Write-Output "STARTUP_SHORTCUT=$StartupShortcut"
-}

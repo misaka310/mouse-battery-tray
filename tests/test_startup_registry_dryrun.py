@@ -1,30 +1,54 @@
-from pathlib import Path
-
 from sprime_pm1_battery_tray import startup
 
 
-def test_startup_shortcut_toggle(monkeypatch, tmp_path):
-    monkeypatch.setenv("APPDATA", str(tmp_path))
+def test_set_startup_uses_run_key_without_shell_process(monkeypatch):
+    written = []
+    deleted = []
+    cleaned = []
 
-    legacy_cleanup_calls = []
+    class FakeKey:
+        def __enter__(self):
+            return self
 
-    def fake_create_shortcut(shortcut_path, target_path, arguments=""):
-        path = Path(shortcut_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.touch()
+        def __exit__(self, *_args):
+            return False
 
-    monkeypatch.setattr(startup, "_create_shortcut", fake_create_shortcut)
-    monkeypatch.setattr(startup, "_remove_legacy_run_entry", lambda: legacy_cleanup_calls.append(True))
-
-    assert not startup.is_startup_enabled()
+    monkeypatch.setattr(startup.winreg, "CreateKey", lambda *_args: FakeKey())
+    monkeypatch.setattr(
+        startup.winreg,
+        "SetValueEx",
+        lambda _key, name, _reserved, _kind, value: written.append((name, value)),
+    )
+    monkeypatch.setattr(startup, "_delete_run_value", lambda name: deleted.append(name))
+    monkeypatch.setattr(
+        startup,
+        "_remove_legacy_startup_shortcuts",
+        lambda: cleaned.append(True),
+    )
+    monkeypatch.setattr(startup, "_launch_command", lambda: '"C:\\Apps\\Mouse-Battery-Tray.exe"')
 
     startup.set_startup(True)
-    assert startup.is_startup_enabled()
+
+    assert written == [
+        ("MouseBatteryTray", '"C:\\Apps\\Mouse-Battery-Tray.exe"')
+    ]
+    assert "SPRIME PM1 Battery Tray" in deleted
+    assert cleaned == [True]
+
+
+def test_disable_startup_removes_new_and_legacy_entries(monkeypatch):
+    deleted = []
+    monkeypatch.setattr(startup, "_delete_run_value", lambda name: deleted.append(name))
+    monkeypatch.setattr(startup, "_remove_legacy_startup_shortcuts", lambda: None)
 
     startup.set_startup(False)
-    assert not startup.is_startup_enabled()
-    assert len(legacy_cleanup_calls) == 2
+
+    assert deleted == ["MouseBatteryTray", "SPRIME PM1 Battery Tray"]
 
 
-def test_powershell_quote_escapes_single_quotes():
-    assert startup._powershell_quote("C:\\Users\\O'Brien") == "'C:\\Users\\O''Brien'"
+def test_launch_command_for_frozen_app_is_quoted(monkeypatch):
+    monkeypatch.setattr(startup.sys, "frozen", True, raising=False)
+    monkeypatch.setattr(startup.sys, "executable", r"C:\Program Files\Mouse Battery Tray\Mouse-Battery-Tray.exe")
+    assert startup._launch_command() == (
+        '"C:\\Program Files\\Mouse Battery Tray\\Mouse-Battery-Tray.exe"'
+    )

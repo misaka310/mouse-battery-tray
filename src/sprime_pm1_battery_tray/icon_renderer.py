@@ -1,83 +1,58 @@
 from PIL import Image, ImageDraw, ImageFont
 import os
 
+
 def create_battery_icon(percentage, status, is_charging=False, low_battery_threshold=20):
-    """
-    Creates a 32x32 icon with a large number or symbol.
-    
-    Args:
-        percentage: Battery percentage (int or None)
-        status: one of 'connected', 'disconnected', 'device_not_found', 'error'
-        is_charging: bool
-        low_battery_threshold: int
-    """
-    # Create a 32x32 image with full transparency
-    image = Image.new('RGBA', (32, 32), (0, 0, 0, 0))
+    """Create a 32x32 tray icon with a large battery number or state symbol."""
+    image = Image.new("RGBA", (32, 32), (0, 0, 0, 0))
     draw = ImageDraw.Draw(image)
 
-    # Determine background color and text
-    bg_color = (0, 0, 0, 255)  # Pure black for contrast
+    bg_color = (0, 0, 0, 255)
     text = "--"
-    text_color = (255, 255, 255, 255) # White
+    text_color = (255, 255, 255, 255)
 
     if status == "connected":
         if percentage is not None:
-            if percentage >= 100:
-                text = "99+"
-            else:
-                text = str(percentage)
-            
+            text = "99+" if percentage >= 100 else str(percentage)
             if is_charging:
-                bg_color = (0, 150, 0, 255) # Clear Green
+                bg_color = (0, 150, 0, 255)
             elif percentage <= low_battery_threshold:
-                bg_color = (220, 0, 0, 255) # Bright Red
+                bg_color = (220, 0, 0, 255)
             else:
-                bg_color = (30, 30, 30, 255) # Dark Gray for normal
+                bg_color = (30, 30, 30, 255)
         else:
             text = "--"
-            bg_color = (60, 60, 60, 255)
-    elif status == "disconnected" or status == "device_not_found":
+            bg_color = (0, 150, 0, 255) if is_charging else (60, 60, 60, 255)
+    elif status in {"disconnected", "device_not_found"}:
         text = "--"
         bg_color = (60, 60, 60, 255)
-    else: # error
+    else:
         text = "!"
-        bg_color = (200, 80, 0, 255) # Orange
+        bg_color = (200, 80, 0, 255)
 
-    # Draw rounded rectangle background - maximized size (0,0 to 31,31)
-    # Use a small radius to keep it looking like a tray icon but maximize area
     draw.rounded_rectangle([0, 0, 31, 31], radius=4, fill=bg_color)
 
-    # Load font
     try:
-        # Use Arial Bold for maximum thickness
-        font_path = "C:\\Windows\\Fonts\\arialbd.ttf" 
+        font_path = "C:\\Windows\\Fonts\\arialbd.ttf"
         if not os.path.exists(font_path):
             font_path = "arial.ttf"
-        
         if text == "99+":
             font = ImageFont.truetype(font_path, 15)
         elif len(text) >= 2:
             font = ImageFont.truetype(font_path, 23)
         else:
             font = ImageFont.truetype(font_path, 26)
-    except:
+    except OSError:
         font = ImageFont.load_default()
 
-    # Center text accurately
     try:
         bbox = draw.textbbox((0, 0), text, font=font)
-        w = bbox[2] - bbox[0]
-        h = bbox[3] - bbox[1]
-        
-        # Center horizontally, and adjust vertically (h in bbox is often baseline-based)
-        x = (32 - w) // 2
-        # Optical adjustment for centering capital letters/numbers
-        y = (32 - h) // 2 - 3
-        
+        width = bbox[2] - bbox[0]
+        height = bbox[3] - bbox[1]
+        x = (32 - width) // 2
+        y = (32 - height) // 2 - 3
         draw.text((x, y), text, fill=text_color, font=font)
     except AttributeError:
-        # Fallback
         draw.text((4, 4), text, fill=text_color, font=font)
 
     return image
-

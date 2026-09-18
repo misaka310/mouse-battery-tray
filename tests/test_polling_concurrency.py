@@ -4,21 +4,32 @@ import threading
 
 import pytest
 
-from sprime_pm1_battery_tray import app as app_module
 from sprime_pm1_battery_tray.app import BatteryTrayApp
 
 
-def make_app_with_lock() -> BatteryTrayApp:
+class StubManager:
+    def __init__(self, read):
+        self.read = read
+
+    def get_battery_info(self, _preferred):
+        return self.read()
+
+    def close(self):
+        pass
+
+
+def make_app_with_lock(read=lambda: {"status": "device_not_found"}) -> BatteryTrayApp:
     instance = BatteryTrayApp.__new__(BatteryTrayApp)
     instance.poll_lock = threading.Lock()
+    instance.config = {"preferred_device": "auto"}
+    instance.device_manager = StubManager(read)
     return instance
 
 
-def test_poll_once_skips_when_another_read_holds_lock(monkeypatch):
-    instance = make_app_with_lock()
-    assert instance.poll_lock.acquire(blocking=False)
+def test_poll_once_skips_when_another_read_holds_lock():
     calls = []
-    monkeypatch.setattr(app_module, "get_battery_info", lambda: calls.append("read"))
+    instance = make_app_with_lock(lambda: calls.append("read"))
+    assert instance.poll_lock.acquire(blocking=False)
 
     try:
         assert instance.poll_once() is None
@@ -27,13 +38,11 @@ def test_poll_once_skips_when_another_read_holds_lock(monkeypatch):
         instance.poll_lock.release()
 
 
-def test_poll_once_releases_lock_after_reader_exception(monkeypatch):
-    instance = make_app_with_lock()
-
+def test_poll_once_releases_lock_after_reader_exception():
     def fail_read():
         raise RuntimeError("HID read failed")
 
-    monkeypatch.setattr(app_module, "get_battery_info", fail_read)
+    instance = make_app_with_lock(fail_read)
 
     with pytest.raises(RuntimeError, match="HID read failed"):
         instance.poll_once()
@@ -42,8 +51,7 @@ def test_poll_once_releases_lock_after_reader_exception(monkeypatch):
     instance.poll_lock.release()
 
 
-def test_manual_and_periodic_reads_are_serialized(monkeypatch):
-    instance = make_app_with_lock()
+def test_manual_and_periodic_reads_are_serialized():
     entered = threading.Event()
     release = threading.Event()
     results = []
@@ -51,9 +59,16 @@ def test_manual_and_periodic_reads_are_serialized(monkeypatch):
     def slow_read():
         entered.set()
         release.wait(timeout=2)
-        return {"status": "connected", "battery": 80, "charging": False, "full": False}
+        return {
+            "status": "connected",
+            "device": "ATTACK SHARK X1",
+            "device_key": "attack_shark_x1",
+            "battery": 80,
+            "charging": False,
+            "full": False,
+        }
 
-    monkeypatch.setattr(app_module, "get_battery_info", slow_read)
+    instance = make_app_with_lock(slow_read)
     worker = threading.Thread(target=lambda: results.append(instance.poll_once()))
     worker.start()
     assert entered.wait(timeout=1)

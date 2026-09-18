@@ -1,11 +1,14 @@
+from __future__ import annotations
+
 import os
-import subprocess
 import sys
 import winreg
 
-APP_NAME = "SPRIME PM1 Battery Tray"
-SHORTCUT_NAME = f"{APP_NAME}.lnk"
-LEGACY_RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+APP_NAME = "Mouse Battery Tray"
+RUN_VALUE_NAME = "MouseBatteryTray"
+LEGACY_RUN_VALUE_NAMES = ("SPRIME PM1 Battery Tray",)
+RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
+LEGACY_SHORTCUT_NAMES = ("SPRIME PM1 Battery Tray.lnk",)
 
 
 def _startup_dir():
@@ -13,73 +16,63 @@ def _startup_dir():
     return os.path.join(appdata, "Microsoft", "Windows", "Start Menu", "Programs", "Startup")
 
 
-def _startup_shortcut_path():
-    return os.path.join(_startup_dir(), SHORTCUT_NAME)
-
-
-def _powershell_quote(value):
-    return "'" + str(value).replace("'", "''") + "'"
-
-
-def _launch_target():
+def _launch_command():
     if getattr(sys, "frozen", False):
-        return os.path.abspath(sys.executable), ""
+        return f'"{os.path.abspath(sys.executable)}"'
 
     script_path = os.path.abspath(sys.argv[0])
-    return os.path.abspath(sys.executable), f'"{script_path}"'
+    pythonw = sys.executable
+    if pythonw.lower().endswith("python.exe"):
+        candidate = pythonw[:-10] + "pythonw.exe"
+        if os.path.exists(candidate):
+            pythonw = candidate
+    return f'"{os.path.abspath(pythonw)}" "{script_path}"'
 
 
-def _create_shortcut(shortcut_path, target_path, arguments=""):
-    working_dir = os.path.dirname(target_path)
-    ps = (
-        "$shell = New-Object -ComObject WScript.Shell; "
-        f"$shortcut = $shell.CreateShortcut({_powershell_quote(shortcut_path)}); "
-        f"$shortcut.TargetPath = {_powershell_quote(target_path)}; "
-        f"$shortcut.WorkingDirectory = {_powershell_quote(working_dir)}; "
-        f"$shortcut.IconLocation = {_powershell_quote(target_path + ',0')}; "
-        f"$shortcut.Description = {_powershell_quote('SPRIME PM1 battery monitor')}; "
-        f"$shortcut.Arguments = {_powershell_quote(arguments)}; "
-        "$shortcut.Save()"
-    )
-    creationflags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    subprocess.run(
-        ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", ps],
-        check=True,
-        creationflags=creationflags,
-    )
-
-
-def _remove_legacy_run_entry():
+def _delete_run_value(name):
     try:
-        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, LEGACY_RUN_KEY, 0, winreg.KEY_SET_VALUE)
-    except OSError:
-        return
-
-    try:
-        winreg.DeleteValue(key, APP_NAME)
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            RUN_KEY,
+            0,
+            winreg.KEY_SET_VALUE,
+        ) as key:
+            winreg.DeleteValue(key, name)
     except OSError:
         pass
-    finally:
-        winreg.CloseKey(key)
+
+
+def _remove_legacy_startup_shortcuts():
+    for name in LEGACY_SHORTCUT_NAMES:
+        try:
+            os.remove(os.path.join(_startup_dir(), name))
+        except FileNotFoundError:
+            pass
+        except OSError:
+            pass
 
 
 def is_startup_enabled():
-    return os.path.isfile(_startup_shortcut_path())
+    try:
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            RUN_KEY,
+            0,
+            winreg.KEY_READ,
+        ) as key:
+            value, _ = winreg.QueryValueEx(key, RUN_VALUE_NAME)
+        return bool(value)
+    except OSError:
+        return False
 
 
 def set_startup(enable):
-    shortcut_path = _startup_shortcut_path()
-
     if enable:
-        os.makedirs(_startup_dir(), exist_ok=True)
-        target_path, arguments = _launch_target()
-        _create_shortcut(shortcut_path, target_path, arguments)
+        with winreg.CreateKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
+            winreg.SetValueEx(key, RUN_VALUE_NAME, 0, winreg.REG_SZ, _launch_command())
     else:
-        try:
-            os.remove(shortcut_path)
-        except FileNotFoundError:
-            pass
+        _delete_run_value(RUN_VALUE_NAME)
 
-    # Migrate away from the older HKCU\...\Run registration so there is only
-    # one auto-start mechanism and Windows Startup remains easy to inspect.
-    _remove_legacy_run_entry()
+    for name in LEGACY_RUN_VALUE_NAMES:
+        _delete_run_value(name)
+    _remove_legacy_startup_shortcuts()

@@ -23,30 +23,27 @@ if ($unitTests.ExitCode -ne 0) {
     throw "Unit tests failed with exit code $($unitTests.ExitCode)!"
 }
 
-Write-Host "`n3. Running Probe..." -ForegroundColor Cyan
-.\scripts\probe.ps1
-
-Write-Host "`n4. Testing HID Protocol (Real Device Battery Read)..." -ForegroundColor Cyan
+Write-Host "`n3. Testing HID Protocol (Real Device Battery Read)..." -ForegroundColor Cyan
 $deviceCheck = Start-Process -FilePath $python -ArgumentList @("scripts/check_real_device.py") -NoNewWindow -Wait -PassThru
 if ($deviceCheck.ExitCode -ne 0) {
     throw "Real device HID check failed with exit code $($deviceCheck.ExitCode)!"
 }
 
-Write-Host "`n5. Building EXE..." -ForegroundColor Cyan
+Write-Host "`n4. Building EXE..." -ForegroundColor Cyan
 .\scripts\build.ps1
 
-$exePath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "dist\SPRIME-PM1-Battery-Tray\SPRIME-PM1-Battery-Tray.exe"))
-Write-Host "`n6. Checking EXE existence at $exePath..." -ForegroundColor Cyan
+$exePath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "dist\Mouse-Battery-Tray\Mouse-Battery-Tray.exe"))
+Write-Host "`n5. Checking EXE existence at $exePath..." -ForegroundColor Cyan
 if (-not (Test-Path $exePath)) {
     throw "EXE was not generated at expected path: $exePath"
 }
 
-Write-Host "`n7. Running Smoke Test on built EXE..." -ForegroundColor Cyan
+Write-Host "`n6. Running Smoke Test on built EXE..." -ForegroundColor Cyan
 $smoke = Start-Process -FilePath $exePath -ArgumentList @("--smoke-test") -NoNewWindow -Wait -PassThru
 if ($smoke.ExitCode -eq 0) {
     Write-Host "Smoke test passed!" -ForegroundColor Green
 } else {
-    throw "Smoke test failed with exit code $($smoke.ExitCode)! This usually means an ImportError or initialization failure."
+    throw "Smoke test failed with exit code $($smoke.ExitCode)!"
 }
 
 Write-Host "`nE2E complete! All steps passed." -ForegroundColor Green

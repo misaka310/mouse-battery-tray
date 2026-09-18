@@ -45,11 +45,11 @@ jobs:
 
       - name: Lint HID boundary maintainability
         shell: pwsh
-        run: .\.venv\Scripts\python.exe -m ruff check --select I,UP,B src\sprime_pm1_battery_tray\hid_protocol.py tests\test_hid_protocol.py tests\test_hid_protocol_quality.py
+        run: .\.venv\Scripts\python.exe -m ruff check --select I,UP,B src\sprime_pm1_battery_tray\hid_protocol.py src\sprime_pm1_battery_tray\x1_protocol.py src\sprime_pm1_battery_tray\device_manager.py tests\test_hid_protocol.py tests\test_hid_protocol_quality.py tests\test_x1_protocol.py tests\test_device_manager.py
 
-      - name: Typecheck HID protocol
+      - name: Typecheck HID protocols
         shell: pwsh
-        run: .\.venv\Scripts\python.exe -m mypy src\sprime_pm1_battery_tray\hid_protocol.py
+        run: .\.venv\Scripts\python.exe -m mypy src\sprime_pm1_battery_tray\hid_protocol.py src\sprime_pm1_battery_tray\x1_protocol.py src\sprime_pm1_battery_tray\device_manager.py
 
       - name: Run unit tests
         shell: pwsh
@@ -57,12 +57,9 @@ jobs:
           $env:PYTHONPATH = "src"
           .\.venv\Scripts\python.exe -m coverage erase
           .\.venv\Scripts\python.exe -m coverage run -m pytest tests
+          .\.venv\Scripts\python.exe -m coverage report
 
-      - name: Enforce repository coverage floor
-        shell: pwsh
-        run: .\.venv\Scripts\python.exe -m coverage report
-
-      - name: Enforce HID protocol coverage
+      - name: Enforce PM1 HID protocol coverage
         shell: pwsh
         run: |
           $env:PYTHONPATH = "src"
@@ -77,18 +74,18 @@ jobs:
       - name: Package EXE folder
         shell: pwsh
         run: |
-          $packageName = "SPRIME-PM1-Battery-Tray-${{ github.ref_name }}.zip"
+          $packageName = "Mouse-Battery-Tray-${{ github.ref_name }}.zip"
           if ("${{ github.ref_type }}" -ne "tag") {
             $shortSha = "${{ github.sha }}".Substring(0, 7)
-            $packageName = "SPRIME-PM1-Battery-Tray-$shortSha.zip"
+            $packageName = "Mouse-Battery-Tray-$shortSha.zip"
           }
-          Compress-Archive -Path "dist\SPRIME-PM1-Battery-Tray\*" -DestinationPath $packageName -Force
+          Compress-Archive -Path "dist\Mouse-Battery-Tray\*" -DestinationPath $packageName -Force
           "PACKAGE_NAME=$packageName" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SPRIME-PM1-Battery-Tray
+          name: Mouse-Battery-Tray
           path: ${{ env.PACKAGE_NAME }}
           if-no-files-found: error
 
