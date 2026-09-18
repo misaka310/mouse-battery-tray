@@ -8,6 +8,10 @@ on:
     types:
       - closed
 
+concurrency:
+  group: delete-merged-branches-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
@@ -15,6 +19,7 @@ jobs:
   delete-bootstrap-branch:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Delete cleanup bootstrap branch
         env:
@@ -27,6 +32,7 @@ jobs:
   delete-merged-pr-branch:
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Delete merged PR head branch
         env:

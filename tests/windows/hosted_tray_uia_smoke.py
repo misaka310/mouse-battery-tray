@@ -18,7 +18,7 @@ def find_tray_button():
         return smoke.find_button(smoke.candidate_scopes(), predicate)
 
     return smoke.wait_until(
-        "SPRIME PM1 tray icon",
+        "Mouse Battery Tray icon",
         find_or_refresh_overflow,
         timeout=20,
         interval=0.8,

@@ -17,11 +17,10 @@
 ```powershell
 $env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m ruff check src tests
-.\.venv\Scripts\python.exe -m mypy src\sprime_pm1_battery_tray\hid_protocol.py
 .\.venv\Scripts\python.exe -m pytest tests
 ```
 
-CIでは全体の非退行coverageに加え、HID protocolへRuffのimport・modernization・bugbear規則と90%のfocused coverageを要求します。空パス、空応答、異常値、権限エラー、列挙失敗、複合HID endpoint競合をモックで検証します。
+PM1のFeature Report実装に加え、ATTACK SHARK系の受信パケット解析もユニットテストします。X1では実機確認済みの `03 B1 40 01 <battery>` パケットを回帰テストに固定しています。
 
 ## EXEビルド
 
@@ -32,18 +31,25 @@ CIでは全体の非退行coverageに加え、HID protocolへRuffのimport・mod
 生成物:
 
 ```text
-dist/SPRIME-PM1-Battery-Tray/SPRIME-PM1-Battery-Tray.exe
+dist/Mouse-Battery-Tray/Mouse-Battery-Tray.exe
 ```
 
-`.github/workflows/build-windows.yml`は`main`へのpush、手動実行、`v*`タグpushでWindows EXEをビルドします。通常のpushと手動実行ではActions artifact、タグpushではGitHub ReleaseへZIPを添付します。
-
-## ユーザー環境へのインストール（任意）
-
-ビルド済みEXE（`dist/SPRIME-PM1-Battery-Tray/`）を`%LOCALAPPDATA%\Programs`配下へ配置し、スタートメニュー登録・スタートアップ起動設定まで行う場合は以下を使います。
+## ユーザー環境へのインストール
 
 ```powershell
 .\scripts\install_user.ps1 [-EnableStartup]
 ```
+
+`%LOCALAPPDATA%\Programs\Mouse Battery Tray` に配置し、Windows検索用のスタートメニューショートカットを作成します。旧SPRIME PM1版の設定が存在する場合は互換設定として移行します。
+
+## 実機確認
+
+```powershell
+$env:PYTHONPATH = "src"
+.\.venv\Scripts\python.exe scripts\check_real_device.py
+```
+
+対応マウスが見つかり、バッテリーを取得できれば `connected` で終了します。実機HID確認はGitHub Actionsでは代替できません。
 
 ## 実機E2E
 
@@ -51,18 +57,20 @@ dist/SPRIME-PM1-Battery-Tray/SPRIME-PM1-Battery-Tray.exe
 .\scripts\e2e.ps1
 ```
 
-この検証はユニットテスト、実機HID読み取り、ビルド、EXE起動確認をまとめて行います。SPRIME PM1を接続していない環境では実機HID確認が失敗します。GitHub Actionsでは実機HIDを読めないため、ユニットテストとビルドだけを実行します。
+ユニットテスト、HID実機読み取り、EXEビルド、EXEスモークをまとめて確認します。ATTACK SHARK X1またはSPRIME PM1など、このリポジトリが対応する実機が必要です。
 
 ## 公開前確認
 
-1. GitHub Actionsの`Build Windows EXE`が通る
-2. SPRIME PM1接続状態で`scripts\e2e.ps1`が通る
-3. 生成されたEXEが起動する
-4. 通知領域に残量、`--`、`!`が表示される
-5. READMEに確認済み環境と未確認デバイスの範囲が記載されている
-6. `dist/`、`.venv/`、ログ、ローカル設定がGitに含まれていない
+1. ユニットテストとRuffが通る
+2. 対応マウス接続状態で `scripts\check_real_device.py` が `connected`
+3. `dist\Mouse-Battery-Tray\Mouse-Battery-Tray.exe --smoke-test` が通る
+4. 通知領域に残量、`--`、`!` が表示される
+5. 二重起動しても常駐プロセスが1個だけ
+6. Windowsログイン時の自動起動が有効ならHKCU Runから起動する
+7. READMEの実機確認範囲を誇張しない
+8. `dist/`、`.venv/`、ログ、ローカル設定をGitへ含めない
 
-詳細は[公開前チェックリスト](public-release-checklist.md)を参照してください。
+詳細は [公開前チェックリスト](public-release-checklist.md) を参照してください。
 
 ## 技術スタック
 

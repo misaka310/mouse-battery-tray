@@ -4,7 +4,7 @@ import ctypes
 import os
 import time
 
-_MUTEX_NAME = "Local\\SPRIME_PM1_Battery_Tray_SingleInstance"
+_MUTEX_NAME = "Local\\Mouse_Battery_Tray_SingleInstance"
 _ERROR_ALREADY_EXISTS = 183
 _mutex_handle: int | None = None
 

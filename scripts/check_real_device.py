@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import sys
 
-from sprime_pm1_battery_tray.hid_protocol import get_battery_info
+from sprime_pm1_battery_tray.battery_reader import get_battery_info
 
 
 def main() -> int:

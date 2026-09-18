@@ -2,7 +2,7 @@
 
 The regular Windows workflow runs unit tests and builds the PyInstaller package. It does not prove that the packaged notification-area menu can be opened and operated by a user.
 
-`powershell -File scripts/run-gui-smoke.ps1` builds the real `SPRIME-PM1-Battery-Tray.exe` and operates it through Windows UI Automation. Controls are selected by accessible names and control types rather than fixed screen coordinates.
+`powershell -File scripts/run-gui-smoke.ps1` builds the real `Mouse-Battery-Tray.exe` and operates it through Windows UI Automation. Controls are selected by accessible names and control types rather than fixed screen coordinates.
 
 ## Scenarios
 

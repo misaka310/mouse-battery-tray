@@ -77,18 +77,18 @@ jobs:
       - name: Package EXE folder
         shell: pwsh
         run: |
-          $packageName = "SPRIME-PM1-Battery-Tray-${{ github.ref_name }}.zip"
+          $packageName = "Mouse-Battery-Tray-${{ github.ref_name }}.zip"
           if ("${{ github.ref_type }}" -ne "tag") {
             $shortSha = "${{ github.sha }}".Substring(0, 7)
-            $packageName = "SPRIME-PM1-Battery-Tray-$shortSha.zip"
+            $packageName = "Mouse-Battery-Tray-$shortSha.zip"
           }
-          Compress-Archive -Path "dist\SPRIME-PM1-Battery-Tray\*" -DestinationPath $packageName -Force
+          Compress-Archive -Path "dist\Mouse-Battery-Tray\*" -DestinationPath $packageName -Force
           "PACKAGE_NAME=$packageName" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SPRIME-PM1-Battery-Tray
+          name: Mouse-Battery-Tray
           path: ${{ env.PACKAGE_NAME }}
           if-no-files-found: error
 

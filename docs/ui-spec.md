@@ -1,56 +1,50 @@
-# UI仕様: SPRIME PM1 Battery Tray
+# UI仕様: Mouse Battery Tray
 
 ## 目的
 
-Windows 11のタスクトレイ周辺に、SPRIME PM1系マウスのバッテリー残量を常時確認できる表示を追加する。
-
-## 参照画像
-
-- `assets/original-task-tray-screenshot.png`
-- `assets/reference-ui-mockup.png`
+Windowsの通知領域で、対応ワイヤレスマウスのバッテリー残量を設定アプリを開かず確認できるようにする。
 
 ## 表示方針
 
-Windowsの標準通知領域は、通常のアプリが任意の長い文字列を常時タスクバー上に直接表示する用途には向かない。
-そのため、トレイアイコンへ電池残量を数字入りアイコンとして描画する。
+Windows通知領域では長い固定文字列ではなく、32×32の数字アイコンを使う。
 
-- 例: `78`、低残量なら警告風アイコン。
-- ホバー時のツールチップに正確な表示を出す。
-- 例: `SPRIME PM1 Battery: 78% / Connected`
+- 0〜99%: 数字
+- 100%: `99+`
+- 未接続・スリープ・まだ通知待ち: `--`
+- HID通信エラー: `!`
+- ホバー: 自動判別したデバイス名と残量を表示
+- 充電中: 緑系背景
+- 低残量: 赤系背景
 
 ## 設定画面
 
-`Show settings`から開く設定画面は、少なくとも以下を持つ。
+`Show settings` から以下を確認・変更できる。
 
-- 現在の状態
-  - デバイス名
-  - 接続状態
-  - バッテリー残量
-  - 最終更新時刻
-- Refresh interval（秒単位の自由入力、既定300秒、最小5秒）
-- Low battery threshold（％単位の自由入力、既定20%）
-- Manual refresh
-- Open logs
+- 自動判別したデバイス名
+- バッテリー残量
+- 接続状態
+- 最終更新時刻
+- 最終エラー
+- Refresh interval
+- Low battery threshold
+- Low battery notification
+- Start on boot
+- Refresh Now
+- Open Logs
 
 ## トレイメニュー
 
-右クリックメニューを用意する。
-
 - Refresh now
 - Show settings
-- Start on boot（トグル、Windowsログイン時の自動起動）
+- Start on boot
 - Open logs
 - Quit
 
-## 表示ステータス
-
-- Connected
-- Disconnected
-- Unknown protocol
-- Battery read failed
-- Low battery
-
 ## 完了条件
 
-UIだけでなく、実際のSPRIME PM1系マウスまたはレシーバーから読み取ったバッテリー値を表示できていること。
-`sprime.pro` の表示値とおおむね一致すること。
+- 対応マウスを自動判別する
+- ATTACK SHARK X1では2.4GHzレシーバーから実残量を読める
+- SPRIME PM1の既存Feature Report読み取りを壊さない
+- 二重起動しない
+- Windowsログイン時に自動起動できる
+- 通常利用者がWindows検索から `Mouse Battery Tray` を起動できる

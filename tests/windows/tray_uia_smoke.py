@@ -18,7 +18,7 @@ import win32com.client
 from PIL import ImageGrab
 from pywinauto import Desktop
 
-APP_NAME = "SPRIME PM1"
+APP_NAME = "Mouse Battery Tray"
 EXE = Path(os.environ["GUI_SMOKE_EXE"]).resolve()
 PACKAGE_ROOT = EXE.parent
 LOGS_DIR = PACKAGE_ROOT / "logs"
@@ -100,7 +100,11 @@ def controller_processes() -> list[psutil.Process]:
 
 
 def launch_app() -> psutil.Process:
-    subprocess.Popen([str(EXE)], cwd=PACKAGE_ROOT)
+    subprocess.Popen(
+        [str(EXE)],
+        cwd=PACKAGE_ROOT,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
 
     def find_single_process() -> psutil.Process | None:
         found = controller_processes()
@@ -159,7 +163,7 @@ def find_tray_button():
         return button
     open_hidden_icons_if_needed()
     return wait_until(
-        "SPRIME PM1 tray icon",
+        "Mouse Battery Tray icon",
         lambda: find_button(candidate_scopes(), predicate),
         timeout=8,
     )
@@ -231,7 +235,7 @@ def settings_window(pid: int) -> WindowInfo | None:
         (
             row
             for row in enum_top_windows()
-            if row.pid == pid and row.title == "SPRIME PM1 Settings" and USER32.IsWindowVisible(row.hwnd)
+            if row.pid == pid and row.title == "Mouse Battery Tray Settings" and USER32.IsWindowVisible(row.hwnd)
         ),
         None,
     )
@@ -246,7 +250,7 @@ def assert_window_responsive(hwnd: int) -> None:
 
 def verify_settings(pid: int) -> None:
     click_menu_item(pid, "Show settings")
-    window = wait_until("SPRIME PM1 Settings window", lambda: settings_window(pid), timeout=8)
+    window = wait_until("Mouse Battery Tray Settings window", lambda: settings_window(pid), timeout=8)
     assert_window_responsive(window.hwnd)
     USER32.PostMessageW(window.hwnd, WM_CLOSE, 0, 0)
     wait_until("settings window to close", lambda: settings_window(pid) is None, timeout=8)
@@ -296,7 +300,11 @@ def verify_open_logs(pid: int) -> None:
 
 
 def verify_duplicate_launch() -> int:
-    subprocess.Popen([str(EXE)], cwd=PACKAGE_ROOT)
+    subprocess.Popen(
+        [str(EXE)],
+        cwd=PACKAGE_ROOT,
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
     time.sleep(2)
     rows = controller_processes()
     if len(rows) != 1:
