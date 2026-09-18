@@ -36,7 +36,9 @@ jobs:
         run: .\.venv\Scripts\python.exe -m py_compile mouse_battery_tray\devices.py mouse_battery_tray\pm1.py mouse_battery_tray\config.py mouse_battery_tray\icon_drawer.py mouse_battery_tray\updater.py
       - name: Unit tests
         shell: pwsh
-        run: .\.venv\Scripts\python.exe -m pytest tests_generic -q
+        run: |
+          $env:PYTHONPATH = "mouse_battery_tray"
+          .\.venv\Scripts\python.exe -m pytest tests_generic -q
       - name: Build EXE
         shell: pwsh
         run: .\scripts\build_generic.ps1
