@@ -4,7 +4,7 @@ line-length = 120
 exclude = [".venv", "build", "dist"]
 
 [tool.ruff.lint]
-select = ["E9", "F63", "F7", "F82"]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -12,9 +12,12 @@ check_untyped_defs = true
 ignore_missing_imports = true
 warn_unused_ignores = true
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+
 [tool.coverage.run]
 branch = true
-source = ["src/sprime_pm1_battery_tray"]
+source = ["src/mouse_battery_tray"]
 
 [tool.coverage.report]
 show_missing = true

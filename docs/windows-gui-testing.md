@@ -1,44 +1,38 @@
-# Windows GUI smoke testing
+# Windows GUI verification
 
-The regular Windows workflow runs unit tests and builds the PyInstaller package. It does not prove that the packaged notification-area menu can be opened and operated by a user.
+## Safety rule
 
-`powershell -File scripts/run-gui-smoke.ps1` builds the real `Mouse-Battery-Tray.exe` and operates it through Windows UI Automation. Controls are selected by accessible names and control types rather than fixed screen coordinates.
+Automated mouse/keyboard input injection is prohibited for this project.
 
-## Scenarios
+The test suite must not use `click_input`, `send_keys`, `pyautogui`, `pynput`, Win32 `SendInput`, `mouse_event`, `keybd_event`, or equivalent APIs.
 
-- the packaged tray application starts;
-- Refresh remains responsive;
-- Show settings opens one responsive Settings window and it can be closed;
-- Open logs opens the intended folder;
-- all expected menu items exist and are enabled;
-- a duplicate launch keeps one tray instance;
-- Quit exits cleanly;
-- the application remains operable after a second launch and exits cleanly again.
+This rule exists specifically to prevent automated tests from moving the user's pointer, clicking taskbar/tray UI, changing focus, or typing into the user's active desktop session.
 
-The **Start on boot** item is checked for presence and enablement, but the smoke test does not toggle it.
+## Automated verification allowed on the host
 
-## GitHub Actions
+The following checks are safe to automate because they do not inject user input:
 
-The public repository runs `.github/workflows/windows-gui-smoke.yml` on GitHub-hosted `windows-latest` for pull requests and manual `workflow_dispatch` runs. No self-hosted runner, repository variable, or custom runner label is required.
+- unit tests for protocol parsing and state mapping;
+- HID receiver reads;
+- process count / single-instance inspection;
+- icon image generation;
+- settings object construction and destruction;
+- PyInstaller build;
+- packaged `--smoke-test`;
+- static checks that fail if banned input-injection APIs are added.
 
-The job checks out a fresh Windows runner, sets up Python, builds the PyInstaller package, and operates the real taskbar and notification-area UI. The hidden-icon overflow refresh used during relaunch is committed in `tests/windows/hosted_tray_uia_smoke.py`; the workflow does not rewrite test source at runtime.
+The repository enforces the last item in `tests/test_no_input_injection.py`.
 
-## Local execution
+## Interactive GUI verification
 
-The same smoke contract can be run from an interactive Windows desktop:
+If a release requires visual confirmation of tray-menu behavior, Settings layout, or notification-area placement:
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-gui-smoke.ps1
-```
+1. use a disposable VM or other desktop session that is isolated from the user's real host session;
+2. perform the interaction manually;
+3. do not automate the interaction with injected mouse or keyboard input;
+4. record only the pass/fail result and sanitized screenshots if appropriate;
+5. if an isolated VM is unavailable, mark the interactive GUI check as not run instead of running it on the host.
 
-Do not run it while another packaged copy from the same checkout is already running. The test opens the tray menu, Settings window, logs folder, and hidden-icon overflow while it runs.
+## CI
 
-## Results
-
-Success prints one `PASS` line per scenario. Failure exits non-zero and saves JSON plus a desktop screenshot under:
-
-```text
-test-results/windows-gui-smoke/
-```
-
-GitHub Actions uploads that directory only on failure.
+GitHub-hosted CI performs build, lint, typecheck, unit tests, coverage, and packaged smoke checks. It does not simulate mouse or keyboard input.

@@ -1,4 +1,4 @@
-from sprime_pm1_battery_tray import battery_reader
+from mouse_battery_tray import battery_reader
 
 
 def test_reader_prefers_attack_shark_when_present(monkeypatch):

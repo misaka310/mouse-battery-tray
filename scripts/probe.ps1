@@ -11,6 +11,6 @@ if (-not (Test-Path $python)) {
 # Add src to PYTHONPATH
 $env:PYTHONPATH = "src"
 
-& $python src/sprime_pm1_battery_tray/hid_scan.py
+& $python src/mouse_battery_tray/hid_scan.py
 
 Write-Host "Probe complete. Logs saved in logs/ directory." -ForegroundColor Green

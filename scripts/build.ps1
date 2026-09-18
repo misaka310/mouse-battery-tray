@@ -63,7 +63,7 @@ $arguments = @(
     "--windowed",
     "--name", $appName,
     "--paths", $srcDir,
-    "--add-data", "$srcDir\sprime_pm1_battery_tray;sprime_pm1_battery_tray/",
+    "--add-data", "$srcDir\mouse_battery_tray;mouse_battery_tray/",
     "--collect-all", "customtkinter",
     $entryPoint
 )

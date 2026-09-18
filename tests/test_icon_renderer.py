@@ -1,5 +1,6 @@
-import pytest
-from sprime_pm1_battery_tray.icon_renderer import create_battery_icon
+
+from mouse_battery_tray.icon_renderer import create_battery_icon
+
 
 def test_create_battery_icon():
     # Connected

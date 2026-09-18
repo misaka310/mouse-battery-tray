@@ -1,0 +1,51 @@
+name: Device support request
+description: Propose support for another wireless mouse or receiver revision
+title: "[Device] "
+labels: ["device-support"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A product name alone is not enough to mark hardware as verified. Please include real receiver/HID evidence where possible, with serial numbers and personal paths removed.
+  - type: input
+    id: model
+    attributes:
+      label: Exact model name
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection mode
+      options:
+        - 2.4 GHz USB receiver
+        - USB wired
+        - Bluetooth
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: vidpid
+    attributes:
+      label: VID / PID
+      placeholder: "VID 0x1234 / PID 0x5678"
+  - type: input
+    id: endpoint
+    attributes:
+      label: HID interface / usage page
+      placeholder: "interface 2 / usage page 0x0A"
+  - type: textarea
+    id: report
+    attributes:
+      label: Sanitized raw report
+      description: Remove serial numbers and personal paths.
+      render: text
+  - type: input
+    id: battery
+    attributes:
+      label: Battery percentage shown by the official software at capture time
+      placeholder: "90%"
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional notes

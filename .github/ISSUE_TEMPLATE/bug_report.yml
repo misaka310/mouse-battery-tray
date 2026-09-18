@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible problem with the tray app
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please remove device serial numbers, Windows usernames, and other personal information from logs before attaching them.
+  - type: input
+    id: model
+    attributes:
+      label: Mouse model
+      placeholder: ATTACK SHARK X1
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: Connection mode
+      options:
+        - 2.4 GHz USB receiver
+        - USB wired
+        - Bluetooth
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 24H2
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Paste the sanitized result of scripts/check_real_device.py or relevant logs.
+      render: text

@@ -1,8 +1,11 @@
-import customtkinter as ctk
+import os
 import tkinter as tk
+
+import customtkinter as ctk
+
 from .config import load_config, save_config
 from .startup import is_startup_enabled, set_startup
-import os
+
 
 class SettingsWindow:
     def __init__(self, master, on_config_changed, on_manual_refresh):
@@ -125,13 +128,14 @@ class SettingsWindow:
     def save(self):
         try:
             interval = int(self.var_interval.get())
-            if interval < 5: interval = 5
-        except:
+            if interval < 5:
+                interval = 5
+        except ValueError:
             interval = 300
         
         try:
             thresh = int(self.var_thresh.get())
-        except:
+        except ValueError:
             thresh = 20
 
         self.config["refresh_interval_sec"] = interval

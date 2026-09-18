@@ -1,21 +1,21 @@
-import time
-import threading
+import argparse
 import datetime
+import os
+import queue
+import sys
+import threading
+import time
+
+import customtkinter as ctk
 import pystray
 from pystray import MenuItem as item
-from PIL import Image
-import queue
-import os
-import sys
-import argparse
-import customtkinter as ctk
-import tkinter as tk
 
-from .config import get_log_dir, load_config, save_config
 from .battery_reader import get_battery_info
+from .config import get_log_dir, load_config, save_config
 from .icon_renderer import create_battery_icon
 from .settings_window import SettingsWindow
 from .startup import is_startup_enabled, set_startup
+
 
 class BatteryTrayApp:
     def __init__(self):
@@ -133,7 +133,8 @@ class BatteryTrayApp:
                 
             # Sleep in small chunks to remain responsive to quit
             for _ in range(interval * 2): # 0.5s chunks
-                if not self.running: break
+                if not self.running:
+                    break
                 time.sleep(0.5)
 
     def handle_update_status(self, res):
@@ -227,21 +228,29 @@ class BatteryTrayApp:
         # Run tkinter mainloop in the main thread
         self.root.mainloop()
 
-def main():
+def build_arg_parser():
     parser = argparse.ArgumentParser(description="Mouse Battery Tray")
     parser.add_argument("--smoke-test", action="store_true", help="Run a smoke test and exit")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--show-settings",
+        action="store_true",
+        help="Open the Settings window after startup (useful for isolated VM verification)",
+    )
+    return parser
+
+
+def main():
+    args = build_arg_parser().parse_args()
 
     if args.smoke_test:
         print("Running smoke test...")
         try:
             # 1. Package import check
             import customtkinter as ctk
-            import pystray
             
             # 2. Config load check
             print("Checking config...")
-            config = load_config()
+            load_config()
             
             # 3. Icon generation check
             print("Checking icon generation...")
@@ -258,7 +267,7 @@ def main():
             # 5. UI initialization check (partial)
             print("Checking UI initialization...")
             root = ctk.CTk()
-            settings = SettingsWindow(root, lambda x: None, lambda: None)
+            SettingsWindow(root, lambda x: None, lambda: None)
             root.destroy()
             
             print("Smoke test passed!")
@@ -271,6 +280,8 @@ def main():
             sys.exit(1)
 
     app = BatteryTrayApp()
+    if args.show_settings:
+        app.root.after(1200, lambda: app.queue.put(("show_settings", None)))
     app.run()
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from sprime_pm1_battery_tray import hid_protocol
+from mouse_battery_tray import hid_protocol
 
 
 def test_query_feature_report_builds_command_and_closes(monkeypatch) -> None:

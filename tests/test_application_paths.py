@@ -9,7 +9,7 @@ def test_log_directory_is_stable_across_working_directories(tmp_path):
     first_cwd.mkdir()
     second_cwd.mkdir()
 
-    from sprime_pm1_battery_tray import config
+    from mouse_battery_tray import config
 
     config = importlib.reload(config)
     expected = (Path(config.__file__).resolve().parents[2] / "logs").resolve()

@@ -2,7 +2,6 @@ import json
 import os
 import sys
 
-
 APP_DATA_DIR_NAME = "MouseBatteryTray"
 LEGACY_APP_DATA_DIR_NAME = "SprimePM1BatteryTray"
 
@@ -42,7 +41,7 @@ def get_log_dir():
 
 
 def _read_config(path):
-    with open(path, "r", encoding="utf-8") as f:
+    with open(path, encoding="utf-8") as f:
         cfg = json.load(f)
     merged = DEFAULT_CONFIG.copy()
     merged.update(cfg)

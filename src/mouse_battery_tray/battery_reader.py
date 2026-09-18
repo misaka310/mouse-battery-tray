@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from . import attack_shark
-from . import hid_protocol
+from . import attack_shark, hid_protocol
 
 
 def get_battery_info() -> dict[str, Any]:

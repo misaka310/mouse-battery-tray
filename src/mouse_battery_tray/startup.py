@@ -2,7 +2,6 @@ import os
 import sys
 import winreg
 
-
 APP_NAME = "Mouse Battery Tray"
 LEGACY_APP_NAME = "SPRIME PM1 Battery Tray"
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"

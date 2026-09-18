@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 
-from sprime_pm1_battery_tray import startup
+from mouse_battery_tray import startup
 
 
 def _fake_registry(monkeypatch):
