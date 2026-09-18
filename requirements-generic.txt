@@ -1,0 +1,5 @@
+hidapi>=0.15,<1
+pystray>=0.19,<1
+Pillow>=12.3,<13
+pyinstaller>=6.21,<7
+pytest>=9.1,<10
