@@ -1,0 +1,55 @@
+name: Build Mouse Battery Tray
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "mouse_battery_tray/**"
+      - "tests_generic/**"
+      - "requirements-generic.txt"
+      - "scripts/build_generic.ps1"
+      - ".github/workflows/build-mouse-battery-tray.yml"
+  push:
+    branches: [main]
+    tags: ["mouse-v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Create venv
+        shell: pwsh
+        run: python -m venv .venv
+      - name: Install dependencies
+        shell: pwsh
+        run: .\.venv\Scripts\python.exe -m pip install -r requirements-generic.txt
+      - name: Syntax check
+        shell: pwsh
+        run: .\.venv\Scripts\python.exe -m py_compile mouse_battery_tray\devices.py mouse_battery_tray\pm1.py mouse_battery_tray\config.py mouse_battery_tray\icon_drawer.py mouse_battery_tray\updater.py
+      - name: Unit tests
+        shell: pwsh
+        run: .\.venv\Scripts\python.exe -m pytest tests_generic -q
+      - name: Build EXE
+        shell: pwsh
+        run: .\scripts\build_generic.ps1
+      - name: Package
+        shell: pwsh
+        run: Compress-Archive -Path "dist\Mouse-Battery-Tray\*" -DestinationPath "Mouse-Battery-Tray.zip" -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mouse-Battery-Tray
+          path: Mouse-Battery-Tray.zip
+      - name: Release ZIP
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Mouse-Battery-Tray.zip
+          generate_release_notes: true
