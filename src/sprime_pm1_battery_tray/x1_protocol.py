@@ -76,7 +76,7 @@ def parse_battery_packet(data: Sequence[int] | None) -> dict[str, Any] | None:
         raw_battery = values[4]
     else:
         candidate = values[4]
-        raw_battery = candidate if 0 <= candidate <= 100 else values[2]
+        raw_battery = candidate if 0 < candidate <= 100 else values[2]
 
     if not 0 <= raw_battery <= 100:
         return None
