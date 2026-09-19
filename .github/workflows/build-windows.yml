@@ -59,7 +59,7 @@ jobs:
           .\.venv\Scripts\python.exe -m coverage run -m pytest tests
           .\.venv\Scripts\python.exe -m coverage report
 
-      - name: Enforce protocol-adapter coverage
+      - name: Enforce ATTACK SHARK adapter coverage
         shell: pwsh
         run: |
           $env:PYTHONPATH = "src"
