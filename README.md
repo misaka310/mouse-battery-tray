@@ -43,11 +43,19 @@
 
 充電中は緑、低残量時は赤、通常時は高コントラストな濃色背景で表示します。
 
+## Verified Settings UI
+
+<p align="center">
+  <img src="docs/images/settings-vm.png" alt="Mouse Battery Tray Settings captured in isolated Hyper-V GUI-CI-01" width="760">
+</p>
+
+この画面は **Hyper-Vの隔離VM `GUI-CI-01`** で、packaged EXEを `--show-settings` 付きで起動して取得した実スクリーンショットです。マウス/キーボード入力注入は使わず、Settings windowの可視性、single-instance、packaged smoke、証跡保存、`gui-clean` への復元まで中央GUI CIで確認しています。詳細は [Hyper-V GUI acceptance evidence](docs/verification/2026-09-19-hyperv-gui-ci.md) を参照してください。
+
 ## Supported devices
 
 | Model | Connection | Verification | Battery transport |
 |---|---|---|---|
-| **ATTACK SHARK X1** | 2.4 GHz USB receiver | 実機確認済み (2026-09-18) | Beken-family passive HID packet |
+| **ATTACK SHARK X1** | 2.4 GHz USB receiver | 実機確認済み (2026-09-19) | Beken-family passive HID packet |
 | **SPRIME PM1** | 2.4 GHz USB receiver | 実機確認済み | Feature Report `0x05` |
 
 ### ATTACK SHARK X1 — verified hardware path
@@ -93,7 +101,7 @@ SPRIME PM1 ─────── hid_protocol.py ──┘          │
   <img src="docs/images/verification-pipeline.svg" alt="Verification pipeline" width="100%">
 </p>
 
-2026-09-18のX1実機受入では、unit tests、実レシーバー読み取り、PyInstaller build、生成EXEのsmoke testを同じ作業で通し、生成EXE自身が `ATTACK SHARK X1 / 90%` を取得するところまで確認しました。
+2026-09-19のX1実機受入では、unit tests、実レシーバー読み取り、PyInstaller build、生成EXEのsmoke testを同じ作業で通し、生成EXE自身が `ATTACK SHARK X1 / 90%` を取得するところまで確認しました。加えて、隔離Hyper-V VMでpackaged EXEのSettings表示とsingle-instanceを、入力注入なしで受入確認しています。
 
 品質確認は次の層に分けています。
 
@@ -103,7 +111,7 @@ SPRIME PM1 ─────── hid_protocol.py ──┘          │
 | Unit tests | packet parse、PM1 Feature Report、設定、icon、polling concurrency |
 | Real-device probe | 実際のUSB receiver/HID stackから取得できること |
 | Packaged smoke | PyInstaller後のEXEでもimport・HID・UI初期化が成立すること |
-| Host-safe verification | process/state inspection、Settings object生成、packaged smoke。入力注入はCIで禁止 |
+| Isolated Hyper-V GUI acceptance | `GUI-CI-01`でpackaged EXE、Settings可視性、single-instance、screenshot、clean restoreを入力注入なしで確認 |
 
 クラウドCIにはUSB実機がないため、**hardware compatibilityはローカル実機E2Eでのみ「確認済み」と扱います**。GUI検証の安全境界は [Windows GUI verification](docs/windows-gui-testing.md) に記載しています。実ホスト上の入力注入は行いません。
 

@@ -23,16 +23,24 @@ The following checks are safe to automate because they do not inject user input:
 
 The repository enforces the last item in `tests/test_no_input_injection.py`.
 
-## Interactive GUI verification
+## Isolated GUI verification
 
-If a release requires visual confirmation of tray-menu behavior, Settings layout, or notification-area placement:
+Visual checks run only in a desktop session isolated from the user's real host session. The current acceptance environment is the Hyper-V runner `GUI-CI-01` managed by repository `132_hyperv-gui-ci-runner`.
 
-1. use a disposable VM or other desktop session that is isolated from the user's real host session;
-2. perform the interaction manually;
-3. do not automate the interaction with injected mouse or keyboard input;
-4. record only the pass/fail result and sanitized screenshots if appropriate;
-5. if an isolated VM is unavailable, mark the interactive GUI check as not run instead of running it on the host.
+The automated acceptance path is deliberately non-interactive:
+
+1. restore the VM to `gui-clean`;
+2. stage the allowlisted repository at an exact commit;
+3. build the packaged EXE inside the guest;
+4. start the EXE with `--show-settings`;
+5. verify the Settings top-level window exists;
+6. start a duplicate instance and verify the process count remains one;
+7. capture the guest desktop as evidence;
+8. terminate the test process;
+9. stop the VM and restore `gui-clean`.
+
+No mouse or keyboard events are synthesized. If a release requires a control to be clicked or text to be entered, that step is a human-only check inside the isolated VM. If an isolated VM is unavailable, the check is marked not run instead of being moved to the host.
 
 ## CI
 
-GitHub-hosted CI performs build, lint, typecheck, unit tests, coverage, and packaged smoke checks. It does not simulate mouse or keyboard input.
+GitHub-hosted CI performs build, lint, typecheck, unit tests, coverage, and packaged smoke checks. The isolated Hyper-V acceptance path adds visual Settings verification and screenshot evidence. Neither path simulates mouse or keyboard input. See [the 2026-09-19 acceptance record](verification/2026-09-19-hyperv-gui-ci.md).

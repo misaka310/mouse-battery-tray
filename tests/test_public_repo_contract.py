@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+from PIL import Image
+
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / "README.md"
 
@@ -11,6 +13,8 @@ def test_readme_local_links_exist():
         "docs/images/system-overview.svg",
         "docs/images/tray-states.svg",
         "docs/images/verification-pipeline.svg",
+        "docs/images/settings-vm.png",
+        "docs/verification/2026-09-19-hyperv-gui-ci.md",
         "docs/architecture.md",
         "docs/protocol-notes.md",
         "docs/development.md",
@@ -34,3 +38,11 @@ def test_readme_uses_generic_package_name():
 def test_readme_svgs_are_well_formed():
     for name in ("system-overview.svg", "tray-states.svg", "verification-pipeline.svg"):
         ET.parse(ROOT / "docs" / "images" / name)
+
+
+
+def test_settings_acceptance_screenshot_is_valid_png():
+    path = ROOT / "docs" / "images" / "settings-vm.png"
+    with Image.open(path) as image:
+        assert image.format == "PNG"
+        assert image.size == (1024, 768)
