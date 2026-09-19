@@ -5,7 +5,6 @@ import hid
 
 SUPPORTED_RECEIVERS = {
     (0x1D57, 0xFA60): "ATTACK SHARK X1 / compatible 2.4G receiver",
-    (0x1915, 0xAC1C): "SPRIME PM1",
 }
 
 
