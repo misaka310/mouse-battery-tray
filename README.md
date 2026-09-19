@@ -11,7 +11,7 @@
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16a34a"></a>
 </p>
 
-メーカー公式アプリを常駐させなくても、2.4 GHzレシーバーからHID情報を読み取り、バッテリー残量・スリープ・通信異常を小さなトレイアイコンへ集約します。ATTACK SHARK X1とSPRIME PM1のように**取得方式が異なる機種をprotocol adapterで分離し、UI側は共通の状態モデルだけを見る**構成です。
+メーカー公式アプリを常駐させなくても、2.4 GHzレシーバーからHID情報を読み取り、バッテリー残量・スリープ・通信異常を小さなトレイアイコンへ集約します。現行版は **ATTACK SHARK X1** を対象にし、デバイス固有処理をprotocol adapterへ閉じ込め、UI側は共通の状態モデルだけを見る構成です。
 
 > **非公式・非提携**
 > このプロジェクトは独立して開発した非公式ツールです。ATTACK SHARK、SPRIMEその他の各社とは提携していません。製品名・サービス名・商標は各権利者に帰属します。
@@ -56,7 +56,6 @@
 | Model | Connection | Verification | Battery transport |
 |---|---|---|---|
 | **ATTACK SHARK X1** | 2.4 GHz USB receiver | 実機確認済み (2026-09-19) | Beken-family passive HID packet |
-| **SPRIME PM1** | 2.4 GHz USB receiver | 実機確認済み | Feature Report `0x05` |
 
 ### ATTACK SHARK X1 — verified hardware path
 
@@ -71,9 +70,9 @@
 └───────────── report prefix 0x03
 ```
 
-### SPRIME PM1 — verified query path
+### Archived: SPRIME PM1
 
-`VID 0x1915 / PID 0xAC1C` を列挙し、Feature Report `0x05` / command `0x15` で状態を取得します。Composite HIDでは既知endpointを優先し、必要な場合だけ候補endpointをprobeします。
+SPRIME PM1対応は2026-09-19に現行runtimeから退役しました。最後のPM1対応コード・テスト・protocol notesは [`archive/sprime-pm1-final`](../../tree/archive/sprime-pm1-final) ブランチに保存しています。現行版の対応機種には含めません。
 
 詳細は [HID protocol notes](docs/protocol-notes.md) を参照してください。
 
@@ -82,9 +81,8 @@
 アプリ本体はdevice固有処理を直接扱いません。`battery_reader` が各adapterを順に解決し、共通のbattery resultへ正規化してから、polling・通知・tray renderingへ渡します。
 
 ```text
-ATTACK SHARK X1 ── attack_shark.py ──┐
-                                     ├─ battery_reader.py
-SPRIME PM1 ─────── hid_protocol.py ──┘          │
+ATTACK SHARK X1 ── attack_shark.py ── battery_reader.py
+                                                │
                                                 ▼
                                       normalized battery state
                                                 │
@@ -108,7 +106,7 @@ SPRIME PM1 ─────── hid_protocol.py ──┘          │
 | Layer | What it proves |
 |---|---|
 | Ruff / Mypy | import、型境界、明らかな実装不備 |
-| Unit tests | packet parse、PM1 Feature Report、設定、icon、polling concurrency |
+| Unit tests | X1 packet parse、設定、icon、polling concurrency |
 | Real-device probe | 実際のUSB receiver/HID stackから取得できること |
 | Packaged smoke | PyInstaller後のEXEでもimport・HID・UI初期化が成立すること |
 | Isolated Hyper-V GUI acceptance | `GUI-CI-01`でpackaged EXE、Settings可視性、single-instance、screenshot、clean restoreを入力注入なしで確認 |
@@ -191,7 +189,6 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\e2e.ps1
 ```text
 src/mouse_battery_tray/
 ├── attack_shark.py      # Beken-family packet adapter
-├── hid_protocol.py      # SPRIME PM1 Feature Report adapter
 ├── battery_reader.py    # protocol selection / normalized result
 ├── app.py               # polling, queue, notification-area lifecycle
 ├── icon_renderer.py     # 32x32 tray state renderer
@@ -201,7 +198,6 @@ src/mouse_battery_tray/
 
 tests/
 ├── test_attack_shark.py
-├── test_hid_protocol.py
 ├── test_no_input_injection.py
 ├── test_polling_concurrency.py
 └── Invoke-HyperVGuiCi.ps1  # isolated VM acceptance entrypoint
@@ -217,6 +213,7 @@ docs/
 
 ## Limitations
 
+- SPRIME PM1の現行サポートは終了しています。必要な旧実装は `archive/sprime-pm1-final` ブランチに保存しています。
 - ATTACK SHARK X1は**2.4 GHz receiver接続**で確認しています。Bluetoothは対象外です。
 - 同一製品名でもreceiver / firmware / revision差でHID識別子やpacket形式が異なる可能性があります。
 - メーカー公式設定ソフトがendpointを排他的に使用している場合、一時的に `!` になることがあります。

@@ -49,7 +49,6 @@ jobs:
           .\.venv\Scripts\python.exe -m mypy
           src\mouse_battery_tray\attack_shark.py
           src\mouse_battery_tray\battery_reader.py
-          src\mouse_battery_tray\hid_protocol.py
 
       - name: Run unit tests with coverage
         shell: pwsh
@@ -59,12 +58,12 @@ jobs:
           .\.venv\Scripts\python.exe -m coverage run -m pytest tests
           .\.venv\Scripts\python.exe -m coverage report
 
-      - name: Enforce protocol-adapter coverage
+      - name: Enforce ATTACK SHARK adapter coverage
         shell: pwsh
         run: |
           $env:PYTHONPATH = "src"
           .\.venv\Scripts\python.exe -m coverage erase
-          .\.venv\Scripts\python.exe -m coverage run --branch --source=mouse_battery_tray.attack_shark,mouse_battery_tray.hid_protocol -m pytest tests\test_attack_shark.py tests\test_hid_protocol.py tests\test_hid_protocol_quality.py
+          .\.venv\Scripts\python.exe -m coverage run --branch --source=mouse_battery_tray.attack_shark -m pytest tests\test_attack_shark.py
           .\.venv\Scripts\python.exe -m coverage report --fail-under=85
 
       - name: Build EXE

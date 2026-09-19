@@ -20,7 +20,7 @@ $env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m pytest tests
 ```
 
-PM1のFeature Report実装に加え、ATTACK SHARK系の受信パケット解析もユニットテストします。X1では実機確認済みの `03 B1 40 01 <battery>` パケットを回帰テストに固定しています。
+ATTACK SHARK系の受信パケット解析をユニットテストします。X1では実機確認済みの `03 B1 40 01 <battery>` パケットを回帰テストに固定しています。SPRIME PM1の旧実装とテストは `archive/sprime-pm1-final` に保存しています。
 
 ## EXEビルド
 
@@ -57,7 +57,7 @@ $env:PYTHONPATH = "src"
 .\scripts\e2e.ps1
 ```
 
-ユニットテスト、HID実機読み取り、EXEビルド、EXEスモークをまとめて確認します。ATTACK SHARK X1またはSPRIME PM1など、このリポジトリが対応する実機が必要です。
+ユニットテスト、HID実機読み取り、EXEビルド、EXEスモークをまとめて確認します。現行版の実機E2EにはATTACK SHARK X1が必要です。
 
 ## 公開前確認
 
