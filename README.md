@@ -17,7 +17,7 @@
 > このプロジェクトは独立して開発した非公式ツールです。ATTACK SHARK、SPRIMEその他の各社とは提携していません。製品名・サービス名・商標は各権利者に帰属します。
 
 <p align="center">
-  <img src="docs/images/system-overview.svg" alt="Mouse Battery Tray architecture overview" width="100%">
+  <img src="docs/images/system-overview.png" alt="Mouse Battery Tray architecture overview" width="100%">
 </p>
 
 ## What this project demonstrates
@@ -31,7 +31,7 @@
 ## Tray states
 
 <p align="center">
-  <img src="docs/images/tray-states.svg" alt="Notification area icon states" width="100%">
+  <img src="docs/images/tray-states.png" alt="Notification area icon states" width="100%">
 </p>
 
 | 表示 | 意味 |
