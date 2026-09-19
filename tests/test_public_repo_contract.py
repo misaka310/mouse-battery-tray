@@ -12,7 +12,7 @@ def test_readme_local_links_exist():
     required_paths = [
         "docs/images/system-overview.png",
         "docs/images/tray-states.png",
-        "docs/images/verification-pipeline.svg",
+        "docs/images/verification-pipeline.png",
         "docs/images/settings-vm.png",
         "docs/verification/2026-09-19-hyperv-gui-ci.md",
         "docs/architecture.md",
@@ -43,7 +43,7 @@ def test_readme_svgs_are_well_formed():
 
 
 def test_readme_generated_diagrams_are_valid_pngs():
-    for name in ("system-overview.png", "tray-states.png"):
+    for name in ("system-overview.png", "tray-states.png", "verification-pipeline.png"):
         path = ROOT / "docs" / "images" / name
         with Image.open(path) as image:
             assert image.format == "PNG"

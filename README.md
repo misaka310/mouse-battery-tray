@@ -96,7 +96,7 @@ ATTACK SHARK X1 ── attack_shark.py ── battery_reader.py
 ## Reliability and verification
 
 <p align="center">
-  <img src="docs/images/verification-pipeline.svg" alt="Verification pipeline" width="100%">
+  <img src="docs/images/verification-pipeline.png" alt="Verification pipeline" width="100%">
 </p>
 
 2026-09-19のX1実機受入では、unit tests、実レシーバー読み取り、PyInstaller build、生成EXEのsmoke testを同じ作業で通し、生成EXE自身が `ATTACK SHARK X1 / 90%` を取得するところまで確認しました。加えて、隔離Hyper-V VMでpackaged EXEのSettings表示とsingle-instanceを、入力注入なしで受入確認しています。
