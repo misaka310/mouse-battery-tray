@@ -10,8 +10,8 @@ README = ROOT / "README.md"
 def test_readme_local_links_exist():
     text = README.read_text(encoding="utf-8")
     required_paths = [
-        "docs/images/system-overview.svg",
-        "docs/images/tray-states.svg",
+        "docs/images/system-overview.png",
+        "docs/images/tray-states.png",
         "docs/images/verification-pipeline.svg",
         "docs/images/settings-vm.png",
         "docs/verification/2026-09-19-hyperv-gui-ci.md",
@@ -40,6 +40,14 @@ def test_readme_svgs_are_well_formed():
     for name in ("system-overview.svg", "tray-states.svg", "verification-pipeline.svg"):
         ET.parse(ROOT / "docs" / "images" / name)
 
+
+
+def test_readme_generated_diagrams_are_valid_pngs():
+    for name in ("system-overview.png", "tray-states.png"):
+        path = ROOT / "docs" / "images" / name
+        with Image.open(path) as image:
+            assert image.format == "PNG"
+            assert image.size == (1672, 941)
 
 
 def test_settings_acceptance_screenshot_is_valid_png():
