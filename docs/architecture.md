@@ -19,8 +19,6 @@ Mouse Battery Trayは、機種ごとに異なるHID取得方法を利用者向�
 mouse_battery_tray
 ├── attack_shark.py
 │   └── Beken-family passive packet reader
-├── hid_protocol.py
-│   └── SPRIME PM1 Feature Report reader
 ├── battery_reader.py
 │   └── adapter selection + normalized result
 ├── app.py
@@ -56,13 +54,9 @@ UI側はVID/PIDやreport layoutを知りません。これにより新しいprot
 
 ## Adapter selection
 
-`battery_reader.get_battery_info()` は、対応adapterを決められた順序で問い合わせます。
+`battery_reader.get_battery_info()` は、現行のATTACK SHARK/Beken adapterを問い合わせ、対応receiverがなければ `device_not_found` を返します。
 
-1. ATTACK SHARK/Beken receiverを列挙
-2. 見つからなければSPRIME PM1を列挙
-3. 対応機種がなければ `device_not_found`
-
-将来的にadapter数が増える場合はregistry化できますが、現在は2系統なので単純な明示順序を選んでいます。不要な抽象化を避け、device supportの責任範囲を読みやすく保つためです。
+SPRIME PM1 adapterは2026-09-19に現役runtimeから退役し、`archive/sprime-pm1-final` ブランチへ保存しました。将来別protocolを追加するときもUIを変更せずadapter境界へ追加します。
 
 ## Concurrency model
 
