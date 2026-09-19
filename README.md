@@ -127,18 +127,30 @@ SPRIME PM1 ─────── hid_protocol.py ──┘          │
 - Windows mutexによるsingle-instance
 - 旧SPRIME PM1版configからのmigration
 
-## Run from source
+## Requirements
 
-Windows 10 / 11、Python 3.10+ を対象としています。
+- Windows 10 / 11
+- Python 3.10+（source実行・build時）
+- 対応する2.4 GHz USB receiver
+- 通常利用・自動起動とも管理者権限は不要
+
+## Setup
 
 ```powershell
 git clone https://github.com/misaka310/sprime-pm1-battery-tray.git
 cd sprime-pm1-battery-tray
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup.ps1
+```
+
+## Usage
+
+2.4 GHz receiverを接続し、マウスがsleep中なら一度動かしてから起動します。
+
+```powershell
 .\run.ps1
 ```
 
-2.4 GHz receiverを接続し、マウスがsleep中なら一度動かしてください。
+通知領域の数値アイコンから現在値を確認でき、Settingsでは更新間隔、低残量閾値、通知、自動起動を変更できます。設定は `%APPDATA%\MouseBatteryTray\config.json` に保存されます。安全な設定例は [config.example.json](config.example.json) を参照してください。
 
 ### Build a standalone EXE
 
@@ -190,17 +202,20 @@ src/mouse_battery_tray/
 tests/
 ├── test_attack_shark.py
 ├── test_hid_protocol.py
+├── test_no_input_injection.py
 ├── test_polling_concurrency.py
-└── windows/             # packaged GUI smoke
+└── Invoke-HyperVGuiCi.ps1  # isolated VM acceptance entrypoint
 
 docs/
 ├── architecture.md
 ├── protocol-notes.md
 ├── development.md
-└── windows-gui-testing.md
+├── windows-gui-testing.md
+├── verification/
+└── images/
 ```
 
-## Compatibility notes
+## Limitations
 
 - ATTACK SHARK X1は**2.4 GHz receiver接続**で確認しています。Bluetoothは対象外です。
 - 同一製品名でもreceiver / firmware / revision差でHID識別子やpacket形式が異なる可能性があります。

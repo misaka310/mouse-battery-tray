@@ -22,6 +22,7 @@ def test_readme_local_links_exist():
         "CONTRIBUTING.md",
         "SECURITY.md",
         "THIRD_PARTY_NOTICES.md",
+        "config.example.json",
         "LICENSE",
     ]
     for relative in required_paths:
