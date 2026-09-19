@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
-
 import pytest
 
-from sprime_pm1_battery_tray import hid_protocol
-from sprime_pm1_battery_tray.hid_protocol import (
+from mouse_battery_tray import hid_protocol
+from mouse_battery_tray.hid_protocol import (
     get_battery_info,
     parse_battery_report,
     read_battery,

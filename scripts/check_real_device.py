@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
-from sprime_pm1_battery_tray.hid_protocol import get_battery_info
+REPO_ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = REPO_ROOT / "src"
+if str(SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(SRC_DIR))
+
+from mouse_battery_tray.battery_reader import get_battery_info  # noqa: E402
 
 
 def main() -> int:

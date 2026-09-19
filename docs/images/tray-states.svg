@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="420" viewBox="0 0 1400 420" role="img" aria-labelledby="title desc">
+  <title id="title">Mouse Battery Tray icon states</title>
+  <desc id="desc">Four notification area icon states: normal, full, sleeping or disconnected, and communication error.</desc>
+  <defs>
+    <style>
+      .t{font:700 38px "Segoe UI",Arial,sans-serif;fill:#0f172a}.s{font:400 20px "Segoe UI",Arial,sans-serif;fill:#475569}
+      .n{font:800 54px "Segoe UI",Arial,sans-serif;fill:#fff}.h{font:700 22px "Segoe UI",Arial,sans-serif;fill:#0f172a}
+      .b{font:400 18px "Segoe UI",Arial,sans-serif;fill:#64748b}
+    </style>
+  </defs>
+  <rect width="1400" height="420" rx="24" fill="#f8fafc"/>
+  <text x="60" y="68" class="t">Tray icon states</text>
+  <text x="60" y="103" class="s">小さい通知領域でも「残量」と「異常」を一目で区別</text>
+
+  <g transform="translate(75 145)">
+    <rect width="285" height="205" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="28" y="28" width="72" height="72" rx="12" fill="#1e1e1e"/><text x="40" y="82" class="n">96</text>
+    <text x="125" y="60" class="h">Normal</text><text x="125" y="92" class="b">0–99%</text>
+    <text x="28" y="150" class="b">現在の残量を数字で表示</text>
+  </g>
+
+  <g transform="translate(390 145)">
+    <rect width="285" height="205" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="28" y="28" width="72" height="72" rx="12" fill="#1e1e1e"/><text x="32" y="78" style="font:800 32px 'Segoe UI',Arial,sans-serif;fill:#fff">99+</text>
+    <text x="125" y="60" class="h">Full</text><text x="125" y="92" class="b">100%</text>
+    <text x="28" y="150" class="b">3桁を小さく潰さず99+に集約</text>
+  </g>
+
+  <g transform="translate(705 145)">
+    <rect width="285" height="205" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="28" y="28" width="72" height="72" rx="12" fill="#3c3c3c"/><text x="39" y="80" class="n">--</text>
+    <text x="125" y="60" class="h">Sleeping</text><text x="125" y="92" class="b">or disconnected</text>
+    <text x="28" y="150" class="b">エラーと区別して「未取得」を表現</text>
+  </g>
+
+  <g transform="translate(1020 145)">
+    <rect width="305" height="205" rx="24" fill="#fff" stroke="#e2e8f0" stroke-width="2"/>
+    <rect x="28" y="28" width="72" height="72" rx="12" fill="#c85000"/><text x="52" y="82" class="n">!</text>
+    <text x="125" y="60" class="h">HID error</text><text x="125" y="92" class="b">access / read failure</text>
+    <text x="28" y="150" class="b">通信異常だけを明確に警告</text>
+  </g>
+</svg>

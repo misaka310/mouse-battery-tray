@@ -4,8 +4,8 @@ import threading
 
 import pytest
 
-from sprime_pm1_battery_tray import app as app_module
-from sprime_pm1_battery_tray.app import BatteryTrayApp
+from mouse_battery_tray import app as app_module
+from mouse_battery_tray.app import BatteryTrayApp
 
 
 def make_app_with_lock() -> BatteryTrayApp:

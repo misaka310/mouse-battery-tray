@@ -10,7 +10,7 @@ if (-not (Test-Path $python)) {
     throw "Virtual-environment Python was not found: $python"
 }
 
-$appName = "SPRIME-PM1-Battery-Tray"
+$appName = "Mouse-Battery-Tray"
 $distDir = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "dist\$appName"))
 $buildDir = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "build\$appName"))
 $specFile = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "$appName.spec"))
@@ -63,7 +63,7 @@ $arguments = @(
     "--windowed",
     "--name", $appName,
     "--paths", $srcDir,
-    "--add-data", "$srcDir\sprime_pm1_battery_tray;sprime_pm1_battery_tray/",
+    "--add-data", "$srcDir\mouse_battery_tray;mouse_battery_tray/",
     "--collect-all", "customtkinter",
     $entryPoint
 )
@@ -77,4 +77,4 @@ if (-not (Test-Path $exePath)) {
     throw "Build finished but EXE was not generated at expected path: $exePath"
 }
 
-Write-Host "Build complete. EXE is in dist\SPRIME-PM1-Battery-Tray\" -ForegroundColor Green
+Write-Host "Build complete. EXE is in dist\Mouse-Battery-Tray\" -ForegroundColor Green

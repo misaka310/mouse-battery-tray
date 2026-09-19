@@ -1,0 +1,7 @@
+{
+  "config_version": 4,
+  "refresh_interval_sec": 300,
+  "low_battery_threshold": 20,
+  "notify_low_battery": true,
+  "start_on_boot": false
+}

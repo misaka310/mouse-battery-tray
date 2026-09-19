@@ -1,44 +1,46 @@
-# Windows GUI smoke testing
+# Windows GUI verification
 
-The regular Windows workflow runs unit tests and builds the PyInstaller package. It does not prove that the packaged notification-area menu can be opened and operated by a user.
+## Safety rule
 
-`powershell -File scripts/run-gui-smoke.ps1` builds the real `SPRIME-PM1-Battery-Tray.exe` and operates it through Windows UI Automation. Controls are selected by accessible names and control types rather than fixed screen coordinates.
+Automated mouse/keyboard input injection is prohibited for this project.
 
-## Scenarios
+The test suite must not use `click_input`, `send_keys`, `pyautogui`, `pynput`, Win32 `SendInput`, `mouse_event`, `keybd_event`, or equivalent APIs.
 
-- the packaged tray application starts;
-- Refresh remains responsive;
-- Show settings opens one responsive Settings window and it can be closed;
-- Open logs opens the intended folder;
-- all expected menu items exist and are enabled;
-- a duplicate launch keeps one tray instance;
-- Quit exits cleanly;
-- the application remains operable after a second launch and exits cleanly again.
+This rule exists specifically to prevent automated tests from moving the user's pointer, clicking taskbar/tray UI, changing focus, or typing into the user's active desktop session.
 
-The **Start on boot** item is checked for presence and enablement, but the smoke test does not toggle it.
+## Automated verification allowed on the host
 
-## GitHub Actions
+The following checks are safe to automate because they do not inject user input:
 
-The public repository runs `.github/workflows/windows-gui-smoke.yml` on GitHub-hosted `windows-latest` for pull requests and manual `workflow_dispatch` runs. No self-hosted runner, repository variable, or custom runner label is required.
+- unit tests for protocol parsing and state mapping;
+- HID receiver reads;
+- process count / single-instance inspection;
+- icon image generation;
+- settings object construction and destruction;
+- PyInstaller build;
+- packaged `--smoke-test`;
+- static checks that fail if banned input-injection APIs are added.
 
-The job checks out a fresh Windows runner, sets up Python, builds the PyInstaller package, and operates the real taskbar and notification-area UI. The hidden-icon overflow refresh used during relaunch is committed in `tests/windows/hosted_tray_uia_smoke.py`; the workflow does not rewrite test source at runtime.
+The repository enforces the last item in `tests/test_no_input_injection.py`.
 
-## Local execution
+## Isolated GUI verification
 
-The same smoke contract can be run from an interactive Windows desktop:
+Visual checks run only in a desktop session isolated from the user's real host session. The current acceptance environment is the Hyper-V runner `GUI-CI-01` managed by repository `132_hyperv-gui-ci-runner`.
 
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-gui-smoke.ps1
-```
+The automated acceptance path is deliberately non-interactive:
 
-Do not run it while another packaged copy from the same checkout is already running. The test opens the tray menu, Settings window, logs folder, and hidden-icon overflow while it runs.
+1. restore the VM to `gui-clean`;
+2. stage the allowlisted repository at an exact commit;
+3. build the packaged EXE inside the guest;
+4. start the EXE with `--show-settings`;
+5. verify the Settings top-level window exists;
+6. start a duplicate instance and verify the process count remains one;
+7. capture the guest desktop as evidence;
+8. terminate the test process;
+9. stop the VM and restore `gui-clean`.
 
-## Results
+No mouse or keyboard events are synthesized. If a release requires a control to be clicked or text to be entered, that step is a human-only check inside the isolated VM. If an isolated VM is unavailable, the check is marked not run instead of being moved to the host.
 
-Success prints one `PASS` line per scenario. Failure exits non-zero and saves JSON plus a desktop screenshot under:
+## CI
 
-```text
-test-results/windows-gui-smoke/
-```
-
-GitHub Actions uploads that directory only on failure.
+GitHub-hosted CI performs build, lint, typecheck, unit tests, coverage, and packaged smoke checks. The isolated Hyper-V acceptance path adds visual Settings verification and screenshot evidence. Neither path simulates mouse or keyboard input. See [the 2026-09-19 acceptance record](verification/2026-09-19-hyperv-gui-ci.md).

@@ -1,5 +1,7 @@
-from PIL import Image, ImageDraw, ImageFont
 import os
+
+from PIL import Image, ImageDraw, ImageFont
+
 
 def create_battery_icon(percentage, status, is_charging=False, low_battery_threshold=20):
     """
@@ -60,7 +62,7 @@ def create_battery_icon(percentage, status, is_charging=False, low_battery_thres
             font = ImageFont.truetype(font_path, 23)
         else:
             font = ImageFont.truetype(font_path, 26)
-    except:
+    except OSError:
         font = ImageFont.load_default()
 
     # Center text accurately

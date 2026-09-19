@@ -35,7 +35,7 @@ if ($deviceCheck.ExitCode -ne 0) {
 Write-Host "`n5. Building EXE..." -ForegroundColor Cyan
 .\scripts\build.ps1
 
-$exePath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "dist\SPRIME-PM1-Battery-Tray\SPRIME-PM1-Battery-Tray.exe"))
+$exePath = [System.IO.Path]::GetFullPath((Join-Path $repoRoot "dist\Mouse-Battery-Tray\Mouse-Battery-Tray.exe"))
 Write-Host "`n6. Checking EXE existence at $exePath..." -ForegroundColor Cyan
 if (-not (Test-Path $exePath)) {
     throw "EXE was not generated at expected path: $exePath"

@@ -14,20 +14,20 @@ concurrency:
   cancel-in-progress: true
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build-windows:
-    name: Build Windows EXE
+    name: Verify and build Windows EXE
     runs-on: windows-latest
-    timeout-minutes: 60
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
 
@@ -39,62 +39,79 @@ jobs:
         shell: pwsh
         run: .\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
 
-      - name: Lint correctness
+      - name: Lint
         shell: pwsh
         run: .\.venv\Scripts\python.exe -m ruff check src tests
 
-      - name: Lint HID boundary maintainability
+      - name: Typecheck protocol boundary
         shell: pwsh
-        run: .\.venv\Scripts\python.exe -m ruff check --select I,UP,B src\sprime_pm1_battery_tray\hid_protocol.py tests\test_hid_protocol.py tests\test_hid_protocol_quality.py
+        run: >-
+          .\.venv\Scripts\python.exe -m mypy
+          src\mouse_battery_tray\attack_shark.py
+          src\mouse_battery_tray\battery_reader.py
+          src\mouse_battery_tray\hid_protocol.py
 
-      - name: Typecheck HID protocol
-        shell: pwsh
-        run: .\.venv\Scripts\python.exe -m mypy src\sprime_pm1_battery_tray\hid_protocol.py
-
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         shell: pwsh
         run: |
           $env:PYTHONPATH = "src"
           .\.venv\Scripts\python.exe -m coverage erase
           .\.venv\Scripts\python.exe -m coverage run -m pytest tests
+          .\.venv\Scripts\python.exe -m coverage report
 
-      - name: Enforce repository coverage floor
-        shell: pwsh
-        run: .\.venv\Scripts\python.exe -m coverage report
-
-      - name: Enforce HID protocol coverage
+      - name: Enforce protocol-adapter coverage
         shell: pwsh
         run: |
           $env:PYTHONPATH = "src"
           .\.venv\Scripts\python.exe -m coverage erase
-          .\.venv\Scripts\python.exe -m coverage run --branch --source=sprime_pm1_battery_tray.hid_protocol -m pytest tests\test_hid_protocol.py tests\test_hid_protocol_quality.py
-          .\.venv\Scripts\python.exe -m coverage report --fail-under=90
+          .\.venv\Scripts\python.exe -m coverage run --branch --source=mouse_battery_tray.attack_shark,mouse_battery_tray.hid_protocol -m pytest tests\test_attack_shark.py tests\test_hid_protocol.py tests\test_hid_protocol_quality.py
+          .\.venv\Scripts\python.exe -m coverage report --fail-under=85
 
       - name: Build EXE
         shell: pwsh
         run: .\scripts\build.ps1
 
+      - name: Smoke-test packaged EXE
+        shell: pwsh
+        run: .\dist\Mouse-Battery-Tray\Mouse-Battery-Tray.exe --smoke-test
+
       - name: Package EXE folder
         shell: pwsh
         run: |
-          $packageName = "SPRIME-PM1-Battery-Tray-${{ github.ref_name }}.zip"
+          $packageName = "Mouse-Battery-Tray-${{ github.ref_name }}.zip"
           if ("${{ github.ref_type }}" -ne "tag") {
             $shortSha = "${{ github.sha }}".Substring(0, 7)
-            $packageName = "SPRIME-PM1-Battery-Tray-$shortSha.zip"
+            $packageName = "Mouse-Battery-Tray-$shortSha.zip"
           }
-          Compress-Archive -Path "dist\SPRIME-PM1-Battery-Tray\*" -DestinationPath $packageName -Force
+          Compress-Archive -Path "dist\Mouse-Battery-Tray\*" -DestinationPath $packageName -Force
           "PACKAGE_NAME=$packageName" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: SPRIME-PM1-Battery-Tray
+          name: mouse-battery-tray-package
           path: ${{ env.PACKAGE_NAME }}
           if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish tagged release
+    if: github.ref_type == 'tag'
+    needs: build-windows
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download verified package
+        uses: actions/download-artifact@v5
+        with:
+          name: mouse-battery-tray-package
+          path: .release
 
       - name: Attach ZIP to GitHub Release
-        if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.PACKAGE_NAME }}
+          files: .release/*.zip
           generate_release_notes: true

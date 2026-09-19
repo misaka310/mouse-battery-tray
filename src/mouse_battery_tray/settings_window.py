@@ -1,8 +1,11 @@
-import customtkinter as ctk
+import os
 import tkinter as tk
+
+import customtkinter as ctk
+
 from .config import load_config, save_config
 from .startup import is_startup_enabled, set_startup
-import os
+
 
 class SettingsWindow:
     def __init__(self, master, on_config_changed, on_manual_refresh):
@@ -21,7 +24,7 @@ class SettingsWindow:
             return
 
         self.root = ctk.CTkToplevel(self.master)
-        self.root.title("SPRIME PM1 Settings")
+        self.root.title("Mouse Battery Tray Settings")
         self.root.geometry("450x550")
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
@@ -33,7 +36,7 @@ class SettingsWindow:
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         # Title
-        title_lbl = ctk.CTkLabel(main_frame, text="SPRIME PM1", font=("Inter", 24, "bold"))
+        title_lbl = ctk.CTkLabel(main_frame, text="Mouse Battery Tray", font=("Inter", 24, "bold"))
         title_lbl.pack(pady=(0, 20), anchor="w")
 
         # Status Section
@@ -116,7 +119,7 @@ class SettingsWindow:
         batt = current_status.get('battery', '--')
         status = current_status.get('status', 'unknown')
         
-        self.status_labels["device"].configure(text=current_status.get("device", "SPRIME PM1"))
+        self.status_labels["device"].configure(text=current_status.get("device", "Mouse"))
         self.status_labels["battery"].configure(text=f"{batt}%" if isinstance(batt, int) else str(batt))
         self.status_labels["status"].configure(text=status)
         self.status_labels["last_update"].configure(text=current_status.get("last_update", "--"))
@@ -125,13 +128,14 @@ class SettingsWindow:
     def save(self):
         try:
             interval = int(self.var_interval.get())
-            if interval < 5: interval = 5
-        except:
+            if interval < 5:
+                interval = 5
+        except ValueError:
             interval = 300
         
         try:
             thresh = int(self.var_thresh.get())
-        except:
+        except ValueError:
             thresh = 20
 
         self.config["refresh_interval_sec"] = interval

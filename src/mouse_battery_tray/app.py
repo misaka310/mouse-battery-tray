@@ -1,21 +1,21 @@
-import time
-import threading
+import argparse
 import datetime
+import os
+import queue
+import sys
+import threading
+import time
+
+import customtkinter as ctk
 import pystray
 from pystray import MenuItem as item
-from PIL import Image
-import queue
-import os
-import sys
-import argparse
-import customtkinter as ctk
-import tkinter as tk
 
+from .battery_reader import get_battery_info
 from .config import get_log_dir, load_config, save_config
-from .hid_protocol import get_battery_info
 from .icon_renderer import create_battery_icon
 from .settings_window import SettingsWindow
 from .startup import is_startup_enabled, set_startup
+
 
 class BatteryTrayApp:
     def __init__(self):
@@ -26,7 +26,7 @@ class BatteryTrayApp:
             set_startup(self.config.get("start_on_boot", False))
         
         self.current_status = {
-            "device": "SPRIME PM1",
+            "device": "Mouse",
             "battery": "--",
             "status": "Initializing...",
             "last_update": "--",
@@ -58,7 +58,7 @@ class BatteryTrayApp:
         )
         
         # Pystray Icon
-        self.icon = pystray.Icon("sprime_pm1_battery")
+        self.icon = pystray.Icon("mouse_battery_tray")
         self.update_tray_icon()
         self.icon.menu = pystray.Menu(
             item('Refresh now', lambda: self.queue.put(("manual_refresh", None))),
@@ -133,7 +133,8 @@ class BatteryTrayApp:
                 
             # Sleep in small chunks to remain responsive to quit
             for _ in range(interval * 2): # 0.5s chunks
-                if not self.running: break
+                if not self.running:
+                    break
                 time.sleep(0.5)
 
     def handle_update_status(self, res):
@@ -146,6 +147,7 @@ class BatteryTrayApp:
         else:
             self.current_status["last_error"] = "None"
             
+        self.current_status["device"] = res.get("device", self.current_status.get("device", "Mouse"))
         self.current_status["status"] = res.get("status", "unknown")
         
         if res.get("status") in ["connected", "disconnected"]:
@@ -158,7 +160,10 @@ class BatteryTrayApp:
                 thresh = self.config.get("low_battery_threshold", 20)
                 if self.current_status["battery"] <= thresh and not self.current_status["charging"]:
                     if self.config.get("notify_low_battery", True) and not self.notified_low_battery:
-                        self.icon.notify(f"Battery is low: {self.current_status['battery']}%", "SPRIME PM1")
+                        self.icon.notify(
+                            f"Battery is low: {self.current_status['battery']}%",
+                            self.current_status.get("device", "Mouse Battery Tray"),
+                        )
                         self.notified_low_battery = True
                 else:
                     self.notified_low_battery = False
@@ -182,14 +187,15 @@ class BatteryTrayApp:
         )
         self.icon.icon = img
         
+        device = self.current_status.get("device", "Mouse")
         if status == "connected" and perc is not None:
-            self.icon.title = f"SPRIME PM1: {perc}%"
+            self.icon.title = f"{device}: {perc}%"
         elif status == "disconnected":
-            self.icon.title = "SPRIME PM1: Disconnected"
+            self.icon.title = f"{device}: Disconnected / sleeping"
         elif status == "device_not_found":
-            self.icon.title = "SPRIME PM1: Device Not Found"
+            self.icon.title = "Mouse Battery Tray: No supported mouse"
         else:
-            self.icon.title = f"SPRIME PM1: {status}"
+            self.icon.title = f"{device}: {status}"
 
     def toggle_start_on_boot(self):
         enabled = not is_startup_enabled()
@@ -222,21 +228,29 @@ class BatteryTrayApp:
         # Run tkinter mainloop in the main thread
         self.root.mainloop()
 
-def main():
-    parser = argparse.ArgumentParser(description="SPRIME PM1 Battery Tray")
+def build_arg_parser():
+    parser = argparse.ArgumentParser(description="Mouse Battery Tray")
     parser.add_argument("--smoke-test", action="store_true", help="Run a smoke test and exit")
-    args = parser.parse_args()
+    parser.add_argument(
+        "--show-settings",
+        action="store_true",
+        help="Open the Settings window after startup (useful for isolated VM verification)",
+    )
+    return parser
+
+
+def main():
+    args = build_arg_parser().parse_args()
 
     if args.smoke_test:
         print("Running smoke test...")
         try:
             # 1. Package import check
             import customtkinter as ctk
-            import pystray
             
             # 2. Config load check
             print("Checking config...")
-            config = load_config()
+            load_config()
             
             # 3. Icon generation check
             print("Checking icon generation...")
@@ -253,7 +267,7 @@ def main():
             # 5. UI initialization check (partial)
             print("Checking UI initialization...")
             root = ctk.CTk()
-            settings = SettingsWindow(root, lambda x: None, lambda: None)
+            SettingsWindow(root, lambda x: None, lambda: None)
             root.destroy()
             
             print("Smoke test passed!")
@@ -266,6 +280,8 @@ def main():
             sys.exit(1)
 
     app = BatteryTrayApp()
+    if args.show_settings:
+        app.root.after(1200, lambda: app.queue.put(("show_settings", None)))
     app.run()
 
 if __name__ == "__main__":
