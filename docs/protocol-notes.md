@@ -40,7 +40,7 @@ Bluetooth pathは確認対象外です。
 
 ### Passive-report behavior
 
-X1側はPM1のようにbattery queryを送るのではなく、receiver endpointから届くbattery heartbeatを短時間待ちます。
+X1側はbattery queryを送る方式ではなく、receiver endpointから届くbattery heartbeatを短時間待ちます。
 
 receiverはWindowsから見えていてもmouseがsleepしているとpacketが来ない場合があるため、timeoutはtransport errorではなく `disconnected / --` として扱います。
 
@@ -58,56 +58,7 @@ Beken-family packet形式と他モデルのdevice id mappingは、MIT Licenseの
 
 他のATTACK SHARKモデル名はcompatible mappingとして保持していますが、本READMEのsupported tableでは実機確認したX1だけをverified扱いにしています。
 
-## SPRIME PM1
+## Archived device support
 
-### Receiver identity
+SPRIME PM1 support was retired from the active runtime on 2026-09-19. The last PM1-capable source, protocol notes, and tests are preserved on the `archive/sprime-pm1-final` branch for reference and possible future restoration.
 
-| Field | Value |
-|---|---|
-| VID | `0x1915` |
-| PID | `0xAC1C` |
-| Feature Report ID | `0x05` |
-| query command | `0x15` |
-| query flag | `0x01` |
-| report length | 32 bytes |
-
-### Query flow
-
-```text
-enumerate VID/PID
-      │
-      ▼
-prefer known col04 endpoint
-      │
-      ▼
-send feature report 0x05
-      │
-      ▼
-read feature report 0x05
-      │
-      ▼
-validate battery / charging / full / online
-```
-
-PM1はComposite HIDとして複数endpointを公開するため、既知endpointがない場合は候補へqueryし、report contractを満たしたendpointだけを採用します。
-
-### Response fields used by the implementation
-
-`hid_protocol.parse_battery_report()` は少なくとも14 bytesのresponseを要求し、次を検証します。
-
-- index 9: battery, `0..100`
-- index 10: charging, `0/1`
-- index 11: full, `0/1`
-- index 12: online, `0/1`
-
-範囲外値やboolean fieldの異常値は、もっともらしいbattery値へ丸めず `invalid_report` とします。
-
-## Evidence policy
-
-このrepositoryでは、次を区別します。
-
-- **verified**: 実機receiverで取得を確認
-- **compatible mapping**: protocol familyの既存mappingはあるが、このrepositoryでは未実機確認
-- **unsupported**: 接続方式またはreport formatを確認していない
-
-VID/PIDが同じだけではverified扱いにしません。firmware/revisionでpacket layoutが変わる可能性があるためです。
