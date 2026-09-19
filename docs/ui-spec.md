@@ -44,7 +44,7 @@ Windows通知領域では長い固定文字列ではなく、32×32の数字ア�
 
 - 対応マウスを自動判別する
 - ATTACK SHARK X1では2.4GHzレシーバーから実残量を読める
-- SPRIME PM1の既存Feature Report読み取りを壊さない
+- 現行サポートはATTACK SHARK X1とし、SPRIME PM1の旧実装は `archive/sprime-pm1-final` に保全する
 - 二重起動しない
 - Windowsログイン時に自動起動できる
 - 通常利用者がWindows検索から `Mouse Battery Tray` を起動できる
