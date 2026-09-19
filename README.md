@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/misaka310/sprime-pm1-battery-tray/actions/workflows/build-windows.yml"><img alt="Build Windows EXE" src="https://github.com/misaka310/sprime-pm1-battery-tray/actions/workflows/build-windows.yml/badge.svg"></a>
+  <a href="https://github.com/misaka310/mouse-battery-tray/actions/workflows/build-windows.yml"><img alt="Build Windows EXE" src="https://github.com/misaka310/mouse-battery-tray/actions/workflows/build-windows.yml/badge.svg"></a>
   <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4">
   <img alt="Python 3.10+" src="https://img.shields.io/badge/Python-3.10%2B-3776AB">
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16a34a"></a>
@@ -137,8 +137,8 @@ SPRIME PM1 ─────── hid_protocol.py ──┘          │
 ## Setup
 
 ```powershell
-git clone https://github.com/misaka310/sprime-pm1-battery-tray.git
-cd sprime-pm1-battery-tray
+git clone https://github.com/misaka310/mouse-battery-tray.git
+cd mouse-battery-tray
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup.ps1
 ```
 
