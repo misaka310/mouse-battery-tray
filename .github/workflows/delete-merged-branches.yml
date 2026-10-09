@@ -8,6 +8,9 @@ on:
     types:
       - closed
 
+permissions:
+  contents: read
+
 concurrency:
   group: delete-merged-branches-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -16,6 +19,8 @@ permissions: read-all
 
 jobs:
   delete-bootstrap-branch:
+    permissions:
+      contents: write
     permissions:
       contents: write
     if: github.event_name == 'push'
@@ -31,6 +36,8 @@ jobs:
           test "${status}" = '204' || test "${status}" = '404' || test "${status}" = '422'
 
   delete-merged-pr-branch:
+    permissions:
+      contents: write
     permissions:
       contents: write
     if: github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.head.repo.full_name == github.repository
