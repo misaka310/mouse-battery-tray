@@ -204,7 +204,12 @@ class BatteryTrayApp:
                 + (
                     f"{item['battery']}%"
                     if item.get("status") == "connected" and type(item.get("battery")) is int
-                    else str(item.get("status", "unavailable"))
+                    else (
+                        f"offline (receiver last {item['last_reported_battery']}%, unverified)"
+                        if item.get("status") == "disconnected"
+                        and type(item.get("last_reported_battery")) is int
+                        else str(item.get("status", "unavailable"))
+                    )
                 )
                 for item in readings
             ]

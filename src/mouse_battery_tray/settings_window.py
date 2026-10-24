@@ -133,7 +133,13 @@ class SettingsWindow:
         for device in devices:
             battery = device.get("battery", "--")
             status = device.get("status", "unknown")
-            value = f"{battery}%" if status == "connected" and type(battery) is int else status
+            if status == "connected" and type(battery) is int:
+                value = f"{battery}%"
+            elif status == "disconnected" and type(device.get("last_reported_battery")) is int:
+                cached = device["last_reported_battery"]
+                value = f"-- (offline; receiver last: {cached}% - unverified)"
+            else:
+                value = status
             names.append(f"{device.get('label', device.get('device', 'Mouse'))}: {value}")
         self.status_labels["mice"].configure(
             text="\n".join(names) if names else "No supported mouse detected",
