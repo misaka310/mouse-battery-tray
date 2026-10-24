@@ -14,9 +14,13 @@ def get_battery_info() -> dict[str, Any]:
 
 def get_monitor_info() -> dict[str, Any]:
     """Aggregate independent mice, with the lowest connected battery on the tray."""
-    from . import bluetooth_m575
+    from . import bluetooth_m575, ry24g
 
-    devices = attack_shark.get_battery_infos() + bluetooth_m575.get_battery_infos()
+    devices = (
+        attack_shark.get_battery_infos()
+        + ry24g.get_battery_infos()
+        + bluetooth_m575.get_battery_infos()
+    )
     devices.sort(key=lambda d: (str(d.get("device", "")), str(d.get("receiver_id", ""))))
     connected = [
         device for device in devices
