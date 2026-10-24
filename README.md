@@ -11,7 +11,7 @@
   <a href="./LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/License-MIT-16a34a"></a>
 </p>
 
-メーカー公式アプリを常駐させなくても、2.4 GHzレシーバーからHID情報を読み取り、バッテリー残量・スリープ・通信異常を小さなトレイアイコンへ集約します。現行版は **ATTACK SHARK X1（2.4GHzレシーバー）とLogitech ERGO M575（Bluetooth）** を対象にし、デバイス固有処理をprotocol adapterへ閉じ込め、UI側は共通の状態モデルだけを見る構成です。
+メーカー公式アプリを常駐させなくても、2.4 GHzレシーバーからHID情報を読み取り、バッテリー残量・スリープ・通信異常を小さなトレイアイコンへ集約します。現行版は **ATTACK SHARK X1（2種類の2.4GHzレシーバー）とLogitech ERGO M575（Bluetooth）** を対象にし、デバイス固有処理をprotocol adapterへ閉じ込め、UI側は共通の状態モデルだけを見る構成です。
 
 > **非公式・非提携**
 > このプロジェクトは独立して開発した非公式ツールです。ATTACK SHARK、SPRIMEその他の各社とは提携していません。製品名・サービス名・商標は各権利者に帰属します。
@@ -56,6 +56,7 @@
 | Model | Connection | Verification | Battery transport |
 |---|---|---|---|
 | **ATTACK SHARK X1** | 2.4 GHz USB receiver | 2026-09-19に別のX1実機で確認済み。2026-10-24のDESK2では対応レシーバー未検出 | Beken-family passive HID packet |
+| **ATTACK SHARK X1（Ry24Gレシーバー型）** | 2.4 GHz、VID 3151 / PID 5031 | DESK2実機でレシーバーと照会成功 (2026-10-25)、レシーバー報告値97%、オンライン状態での実測は未確認 | vendor HID feature report ID 0、読み取り用 0xF7 |
 | **Logitech ERGO M575** | Bluetooth | DESK2でWindowsのバッテリー値75%を確認 (2026-10-24) | Windows Configuration Manager（Bluetooth battery property） |
 
 ### ATTACK SHARK X1 — verified hardware path
@@ -71,6 +72,12 @@
 └───────────── report prefix 0x03
 ```
 
+### ATTACK SHARK X1 — Ry24G型受信機（3151:5031）
+
+メーカーが案内する [ATTACK SHARK WEB beta](https://www.qmk.top/) の公開Webクライアントには、VID `0x3151` / PID `0x5031`、`interface 2 / usage page 0xFFFF / usage 2` が受信機として登録されている。read-only status request `0xF7` は HID feature report 0（64バイトpayload）で送信し、同IDで状態を取得する。状態payload（レポートID除外）の byte 2 が受信機報告のマウス残量、byte 4 がオンライン判定（0=online）。受信機未接続、スリープ中、オンラインでない場合は**現在値を表示しない**。オフライン時の保存値はSettingsに参考値としてのみ表示する。`0xF6` などの切替・設定・ファームウェア変更コマンドは使用しない。
+
+DESK2で2026-10-25に`0xF7`応答が3回一致し、報告値97だったがマウスオンラインフラグはオフ。オンラインでの実残量表示・二台同時GUIは未検証。ユーザーが新規購入したX1と申告しているレシーバーであり、識別子単独で全個体が同製品と確定するものではない。
+
 ### Archived: SPRIME PM1
 
 SPRIME PM1対応は2026-09-19に現行runtimeから退役しました。最後のPM1対応コード・テスト・protocol notesは [`archive/sprime-pm1-final`](../../tree/archive/sprime-pm1-final) ブランチに保存しています。現行版の対応機種には含めません。
@@ -83,6 +90,7 @@ SPRIME PM1対応は2026-09-19に現行runtimeから退役しました。最後�
 
 ```text
 ATTACK SHARK X1 ── attack_shark.py ─── battery_reader.py
+ATTACK SHARK X1 Ry24G ─ ry24g.py ─────┘
 Logitech ERGO M575 ─ bluetooth_m575.py ─┘
                                                 │
                                                 ▼
@@ -193,6 +201,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\e2e.ps1
 ```text
 src/mouse_battery_tray/
 ├── attack_shark.py      # Beken-family packet adapter（複数レシーバー）
+├── ry24g.py             # 3151:5031 read-only feature status adapter
 ├── bluetooth_m575.py    # Windows Bluetooth battery property reader
 ├── battery_reader.py    # protocol selection / normalized result
 ├── app.py               # polling, queue, notification-area lifecycle
@@ -220,7 +229,8 @@ docs/
 
 - SPRIME PM1の現行サポートは終了しています。必要な旧実装は `archive/sprime-pm1-final` ブランチに保存しています。
 - ATTACK SHARK X1は**2.4 GHz receiver接続**で確認しています（X1のBluetooth接続は対象外）。ERGO M575はBluetooth接続に対応します。
-- 同一製品名でもreceiver / firmware / revision差でHID識別子やpacket形式が異なる可能性があります。DESK2で検出した別方式の`VID 0x3151 / PID 0x5031`はX1と同定できておらず、サポート済みとは扱いません。
+- 同一製品名でもreceiver / firmware / revision差でHID識別子やpacket形式が異なる可能性があります。VID `0x3151` / PID `0x5031`はWebクライアントのRy24G式ステータス照会に限定して対応し、他製品も同じUSB識別子を使う場合があるためモデル名の厳密な自動判別までは行いません。
+- この受信機はスリープ／未ペアリング中でも残量らしい値を返す場合があります。**オンラインフラグがない限り接続中の残量として扱わず**、通知も出しません。
 - ERGO M575の残量はWindowsが返す値です。WindowsのBluetoothデバイスプロパティが提供しない場合、残量を推測して表示しません。
 - 複数台接続時はSettings画面でそれぞれ確認でき、数字のトレイアイコンは最少残量のマウスを表します。
 - メーカー公式設定ソフトがendpointを排他的に使用している場合、一時的に `!` になることがあります。
