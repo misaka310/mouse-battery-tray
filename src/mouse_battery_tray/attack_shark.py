@@ -164,3 +164,59 @@ def get_battery_info(timeout_sec: float = DEFAULT_READ_TIMEOUT_SEC) -> dict[str,
         }
 
     return read_battery(endpoint.get("path"), timeout_sec=timeout_sec)
+
+def _receiver_key(device_path: Any) -> str:
+    """Group HID collections from one physical receiver without combining dongles."""
+    import re
+
+    if isinstance(device_path, bytes):
+        path = device_path.decode("ascii", errors="replace")
+    else:
+        path = str(device_path or "")
+    return re.sub(r"&col[0-9]+", "", path, flags=re.IGNORECASE).casefold()
+
+
+def get_battery_infos(timeout_sec: float = DEFAULT_READ_TIMEOUT_SEC) -> list[dict[str, Any]]:
+    """Read every distinct, supported receiver rather than just the first."""
+    import hashlib
+
+    try:
+        devices = scan_devices()
+    except Exception as exc:
+        return [{
+            "status": "enumeration_failed",
+            "device": "ATTACK SHARK Mouse",
+            "error": str(exc) or exc.__class__.__name__,
+            "receiver_id": "x1-enumeration",
+        }]
+
+    by_receiver: dict[str, tuple[int, dict[str, Any]]] = {}
+    for device in devices:
+        if int(device.get("interface_number", -1)) != BATTERY_INTERFACE_NUMBER:
+            continue
+        usage_page = int(device.get("usage_page", 0))
+        if usage_page != BATTERY_USAGE_PAGE and usage_page < 0xFF00:
+            continue
+        key = _receiver_key(device.get("path"))
+        if not key:
+            continue
+        preference = 0 if usage_page == BATTERY_USAGE_PAGE else 1
+        if key not in by_receiver or preference < by_receiver[key][0]:
+            by_receiver[key] = (preference, device)
+
+    if devices and not by_receiver:
+        return [{
+            "status": "protocol_unknown",
+            "device": "ATTACK SHARK Mouse",
+            "error": "Could not find compatible ATTACK SHARK battery endpoint",
+            "receiver_id": "x1-unsupported",
+        }]
+
+    results: list[dict[str, Any]] = []
+    for number, key in enumerate(sorted(by_receiver), start=1):
+        result = read_battery(by_receiver[key][1].get("path"), timeout_sec=timeout_sec)
+        result["receiver_id"] = "x1-" + hashlib.sha256(key.encode("utf-8")).hexdigest()[:12]
+        if len(by_receiver) > 1:
+            result["label"] = f"{result.get('device', 'ATTACK SHARK X1')} #{number}"
+        results.append(result)
+    return results
