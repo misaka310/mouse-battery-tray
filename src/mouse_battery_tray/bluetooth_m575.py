@@ -59,7 +59,7 @@ def _present_device_ids(api: Any) -> list[str]:
         None, buffer, len(buffer), _CM_GETIDLIST_FILTER_PRESENT,
     ) != 0:
         return []
-    return [s for s in buffer[:].split("\0") if s.startswith(("BTH", "SWD"))]
+    return [s for s in "".join(buffer[:]).split("\0") if s.startswith(("BTH", "SWD"))]
 
 
 def _read_property(api: Any, devnode: int, key: _DEVPROPKEY) -> tuple[int, bytes] | None:
