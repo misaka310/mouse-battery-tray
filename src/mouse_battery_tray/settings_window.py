@@ -25,7 +25,7 @@ class SettingsWindow:
 
         self.root = ctk.CTkToplevel(self.master)
         self.root.title("Mouse Battery Tray Settings")
-        self.root.geometry("450x550")
+        self.root.geometry("470x620")
         self.root.resizable(False, False)
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         
@@ -51,14 +51,18 @@ class SettingsWindow:
             ("Battery", "battery"),
             ("Status", "status"),
             ("Last Update", "last_update"),
-            ("Last Error", "last_error")
+            ("Last Error", "last_error"),
+            ("Detected mice", "mice")
         ]
         
         for i, (label, key) in enumerate(fields):
             lbl = ctk.CTkLabel(status_inner, text=f"{label}:", font=("Inter", 12, "bold"), text_color="#aaaaaa")
             lbl.grid(row=i, column=0, sticky="w", pady=2)
             
-            val_lbl = ctk.CTkLabel(status_inner, text="--", font=("Inter", 12))
+            val_lbl = ctk.CTkLabel(
+                status_inner, text="--", font=("Inter", 12),
+                justify="left", anchor="w", wraplength=275,
+            )
             val_lbl.grid(row=i, column=1, sticky="w", padx=10, pady=2)
             self.status_labels[key] = val_lbl
 
@@ -124,6 +128,16 @@ class SettingsWindow:
         self.status_labels["status"].configure(text=status)
         self.status_labels["last_update"].configure(text=current_status.get("last_update", "--"))
         self.status_labels["last_error"].configure(text=current_status.get("last_error", "None"))
+        devices = current_status.get("devices", [])
+        names = []
+        for device in devices:
+            battery = device.get("battery", "--")
+            status = device.get("status", "unknown")
+            value = f"{battery}%" if status == "connected" and type(battery) is int else status
+            names.append(f"{device.get('label', device.get('device', 'Mouse'))}: {value}")
+        self.status_labels["mice"].configure(
+            text="\n".join(names) if names else "No supported mouse detected",
+        )
 
     def save(self):
         try:
