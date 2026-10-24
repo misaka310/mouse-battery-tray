@@ -10,7 +10,7 @@ import customtkinter as ctk
 import pystray
 from pystray import MenuItem as item
 
-from .battery_reader import get_battery_info
+from .battery_reader import get_monitor_info
 from .config import get_log_dir, load_config, save_config
 from .icon_renderer import create_battery_icon
 from .settings_window import SettingsWindow
@@ -32,7 +32,8 @@ class BatteryTrayApp:
             "last_update": "--",
             "last_error": "None",
             "charging": False,
-            "full": False
+            "full": False,
+            "devices": [],
         }
         
         # Event queue for thread-safe communication
@@ -70,7 +71,7 @@ class BatteryTrayApp:
         
         self.running = True
         self.last_poll_time = 0
-        self.notified_low_battery = False
+        self.notified_low_battery = set()
         
         # Start queue processor
         self.process_queue()
@@ -111,7 +112,7 @@ class BatteryTrayApp:
         if not self.poll_lock.acquire(blocking=False):
             return None
         try:
-            return get_battery_info()
+            return get_monitor_info()
         finally:
             self.poll_lock.release()
 
@@ -138,36 +139,44 @@ class BatteryTrayApp:
                 time.sleep(0.5)
 
     def handle_update_status(self, res):
-        """Updates internal status and refreshes UI components."""
-        now_str = datetime.datetime.now().strftime("%H:%M:%S")
-        self.current_status["last_update"] = now_str
-        
-        if "error" in res:
-            self.current_status["last_error"] = res["error"]
-        else:
-            self.current_status["last_error"] = "None"
-            
-        self.current_status["device"] = res.get("device", self.current_status.get("device", "Mouse"))
+        """Update the tray and Settings with independent mouse readings."""
+        self.current_status["last_update"] = datetime.datetime.now().strftime("%H:%M:%S")
+        self.current_status["last_error"] = res.get("error") or "None"
+        self.current_status["device"] = res.get("device", "Mouse")
         self.current_status["status"] = res.get("status", "unknown")
-        
-        if res.get("status") in ["connected", "disconnected"]:
-            self.current_status["battery"] = res.get("battery", "--")
-            self.current_status["charging"] = res.get("charging", False)
-            self.current_status["full"] = res.get("full", False)
-            
-            if res.get("status") == "connected" and isinstance(self.current_status["battery"], int):
-                # Check low battery
-                thresh = self.config.get("low_battery_threshold", 20)
-                if self.current_status["battery"] <= thresh and not self.current_status["charging"]:
-                    if self.config.get("notify_low_battery", True) and not self.notified_low_battery:
+        # Reset stale percent when a previously connected receiver disappears.
+        self.current_status["battery"] = res.get("battery", "--")
+        self.current_status["charging"] = bool(res.get("charging", False))
+        self.current_status["full"] = bool(res.get("full", False))
+        devices = res.get("devices", [])
+        self.current_status["devices"] = devices
+
+        threshold = self.config.get("low_battery_threshold", 20)
+        low_now = set()
+        for device in devices:
+            level = device.get("battery")
+            if (
+                device.get("status") == "connected"
+                and type(level) is int
+                and level <= threshold
+                and not device.get("charging", False)
+            ):
+                key = str(device.get("receiver_id", device.get("device", "Mouse")))
+                low_now.add(key)
+                if (
+                    self.config.get("notify_low_battery", True)
+                    and key not in self.notified_low_battery
+                ):
+                    try:
                         self.icon.notify(
-                            f"Battery is low: {self.current_status['battery']}%",
-                            self.current_status.get("device", "Mouse Battery Tray"),
+                            f"Battery is low: {level}%",
+                            str(device.get("label", device.get("device", "Mouse"))),
                         )
-                        self.notified_low_battery = True
-                else:
-                    self.notified_low_battery = False
-        
+                    except Exception:
+                        # Notification availability must not stop status updates.
+                        pass
+        self.notified_low_battery = low_now
+
         self.update_tray_icon()
         if self.settings_window.root:
             self.settings_window.update_status(self.current_status)
@@ -188,7 +197,19 @@ class BatteryTrayApp:
         self.icon.icon = img
         
         device = self.current_status.get("device", "Mouse")
-        if status == "connected" and perc is not None:
+        readings = self.current_status.get("devices", [])
+        if readings:
+            labels = [
+                f"{item.get('label', item.get('device', 'Mouse'))}: "
+                + (
+                    f"{item['battery']}%"
+                    if item.get("status") == "connected" and type(item.get("battery")) is int
+                    else str(item.get("status", "unavailable"))
+                )
+                for item in readings
+            ]
+            self.icon.title = "; ".join(labels)[:120]
+        elif status == "connected" and perc is not None:
             self.icon.title = f"{device}: {perc}%"
         elif status == "disconnected":
             self.icon.title = f"{device}: Disconnected / sleeping"
@@ -261,7 +282,7 @@ def main():
                 
             # 4. HID read check
             print("Checking HID reading...")
-            res = get_battery_info()
+            res = get_monitor_info()
             print(f"HID Result: {res}")
             
             # 5. UI initialization check (partial)
