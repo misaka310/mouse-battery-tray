@@ -10,7 +10,7 @@ import customtkinter as ctk
 import pystray
 from pystray import MenuItem as item
 
-from .battery_reader import get_monitor_info
+from .battery_reader import get_monitor_info as get_battery_info
 from .config import get_log_dir, load_config, save_config
 from .icon_renderer import create_battery_icon
 from .settings_window import SettingsWindow
@@ -112,7 +112,7 @@ class BatteryTrayApp:
         if not self.poll_lock.acquire(blocking=False):
             return None
         try:
-            return get_monitor_info()
+            return get_battery_info()
         finally:
             self.poll_lock.release()
 
@@ -282,7 +282,7 @@ def main():
                 
             # 4. HID read check
             print("Checking HID reading...")
-            res = get_monitor_info()
+            res = get_battery_info()
             print(f"HID Result: {res}")
             
             # 5. UI initialization check (partial)
