@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from mouse_battery_tray import attack_shark, battery_reader
 import pytest
+
+from mouse_battery_tray import attack_shark, battery_reader
 
 
 @pytest.fixture(autouse=True)
