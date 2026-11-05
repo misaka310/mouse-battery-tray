@@ -20,7 +20,7 @@ $env:PYTHONPATH = "src"
 .\.venv\Scripts\python.exe -m pytest tests
 ```
 
-ATTACK SHARK系の受信パケット解析をユニットテストします。X1では実機確認済みの `03 B1 40 01 <battery>` パケットを回帰テストに固定しています。SPRIME PM1の旧実装とテストは `archive/sprime-pm1-final` に保存しています。
+ATTACK SHARK系の受信パケット解析をユニットテストします。X1では実機確認済みの `03 B1 40 01 <battery>` パケットを回帰テストに固定しています。SPRIME PM1の旧実装とテストは `branch-archive/2026-10-23/archive/sprime-pm1-final` タグに保存しています。
 
 ## EXEビルド
 

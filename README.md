@@ -80,7 +80,7 @@ DESK2で2026-10-25に`0xF7`応答が3回一致し、報告値97だったがマ�
 
 ### Archived: SPRIME PM1
 
-SPRIME PM1対応は2026-09-19に現行runtimeから退役しました。最後のPM1対応コード・テスト・protocol notesは [`archive/sprime-pm1-final`](../../tree/archive/sprime-pm1-final) ブランチに保存しています。現行版の対応機種には含めません。
+SPRIME PM1対応は2026-09-19に現行runtimeから退役しました。最後のPM1対応コード・テスト・protocol notesは [`branch-archive/2026-10-23/archive/sprime-pm1-final`](../../tree/branch-archive/2026-10-23/archive/sprime-pm1-final) タグに保存しています。現行版の対応機種には含めません。
 
 詳細は [HID protocol notes](docs/protocol-notes.md) を参照してください。
 
@@ -227,7 +227,7 @@ docs/
 
 ## Limitations
 
-- SPRIME PM1の現行サポートは終了しています。必要な旧実装は `archive/sprime-pm1-final` ブランチに保存しています。
+- SPRIME PM1の現行サポートは終了しています。必要な旧実装は `branch-archive/2026-10-23/archive/sprime-pm1-final` タグに保存しています。
 - ATTACK SHARK X1は**2.4 GHz receiver接続**で確認しています（X1のBluetooth接続は対象外）。ERGO M575はBluetooth接続に対応します。
 - 同一製品名でもreceiver / firmware / revision差でHID識別子やpacket形式が異なる可能性があります。VID `0x3151` / PID `0x5031`はWebクライアントのRy24G式ステータス照会に限定して対応し、他製品も同じUSB識別子を使う場合があるためモデル名の厳密な自動判別までは行いません。
 - この受信機はスリープ／未ペアリング中でも残量らしい値を返す場合があります。**オンラインフラグがない限り接続中の残量として扱わず**、通知も出しません。
