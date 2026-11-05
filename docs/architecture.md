@@ -56,7 +56,7 @@ UI側はVID/PIDやreport layoutを知りません。これにより新しいprot
 
 `battery_reader.get_battery_info()` は、現行のATTACK SHARK/Beken adapterを問い合わせ、対応receiverがなければ `device_not_found` を返します。
 
-SPRIME PM1 adapterは2026-09-19に現役runtimeから退役し、`archive/sprime-pm1-final` ブランチへ保存しました。将来別protocolを追加するときもUIを変更せずadapter境界へ追加します。
+SPRIME PM1 adapterは2026-09-19に現役runtimeから退役し、`branch-archive/2026-10-23/archive/sprime-pm1-final` タグへ保存しました（元の `archive/sprime-pm1-final` ブランチは2026-10-23にタグへ移行）。将来別protocolを追加するときもUIを変更せずadapter境界へ追加します。
 
 ## Concurrency model
 

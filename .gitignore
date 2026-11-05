@@ -166,3 +166,4 @@ logs/
 
 # Local agent/tool residue
 .ai-bridge/
+.ruff_cache/

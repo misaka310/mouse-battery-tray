@@ -60,5 +60,5 @@ Beken-family packet形式と他モデルのdevice id mappingは、MIT Licenseの
 
 ## Archived device support
 
-SPRIME PM1 support was retired from the active runtime on 2026-09-19. The last PM1-capable source, protocol notes, and tests are preserved on the `archive/sprime-pm1-final` branch for reference and possible future restoration.
+SPRIME PM1 support was retired from the active runtime on 2026-09-19. The last PM1-capable source, protocol notes, and tests are preserved on the `branch-archive/2026-10-23/archive/sprime-pm1-final` tag (the former `archive/sprime-pm1-final` branch, converted to a tag on 2026-10-23) for reference and possible future restoration.
 
